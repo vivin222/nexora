@@ -91,7 +91,7 @@ async function fetchJSON<T>(endpoint: string, options?: RequestInit): Promise<T>
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const executeRequest = async (): Promise<T> => {
+  const executeRequest = async (retries = 1): Promise<T> => {
     try {
       const response = await fetch(`${API_BASE}${endpoint}`, {
         ...options,
@@ -115,6 +115,12 @@ async function fetchJSON<T>(endpoint: string, options?: RequestInit): Promise<T>
       }
 
       return data;
+    } catch (err: any) {
+      if (retries > 0 && (err.name === 'TypeError' || err.message?.includes('fetch'))) {
+        await new Promise(r => setTimeout(r, 1200));
+        return executeRequest(retries - 1);
+      }
+      throw err;
     } finally {
       inFlightRequests.delete(cacheKey);
     }

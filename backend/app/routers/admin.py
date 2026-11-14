@@ -227,9 +227,10 @@ def get_student_details(student_id: str, admin_id: str = Depends(require_admin))
 
         # Activity timeline events
         cursor.execute("""
-            SELECT * FROM activity_timeline
+            SELECT id, learner_id, event_type, title, description, category, metadata, created_at as timestamp
+            FROM activity_timeline
             WHERE learner_id = ?
-            ORDER BY timestamp DESC LIMIT 20
+            ORDER BY created_at DESC LIMIT 20
         """, (student_id,))
         timeline = [dict(r) for r in cursor.fetchall()]
 

@@ -340,6 +340,40 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             </div>
           )}
 
+          {mode === 'login' && (
+            <div className="flex items-center justify-between text-[11px] text-zinc-400 bg-white/[0.03] border border-white/5 rounded-lg px-3 py-1.5">
+              <span className="truncate">Demo Student: <span className="text-white font-mono">alex.mercer@nexora.ai</span></span>
+              <button
+                type="button"
+                onClick={() => {
+                  setEmail('alex.mercer@nexora.ai');
+                  setPassword('Password123!');
+                  setError('');
+                }}
+                className="text-[#35D9F2] hover:underline font-mono text-[10px] font-semibold ml-2 shrink-0"
+              >
+                Autofill
+              </button>
+            </div>
+          )}
+
+          {mode === 'admin-login' && (
+            <div className="flex items-center justify-between text-[11px] text-zinc-400 bg-white/[0.03] border border-white/5 rounded-lg px-3 py-1.5">
+              <span className="truncate">Demo Admin: <span className="text-white font-mono">admin@nexora.ai</span></span>
+              <button
+                type="button"
+                onClick={() => {
+                  setEmail('admin@nexora.ai');
+                  setPassword('AdminPassword2026!');
+                  setError('');
+                }}
+                className="text-amber-400 hover:underline font-mono text-[10px] font-semibold ml-2 shrink-0"
+              >
+                Autofill
+              </button>
+            </div>
+          )}
+
           <Button
             type="submit"
             disabled={loading}

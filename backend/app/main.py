@@ -76,9 +76,18 @@ app.include_router(simulator.router, prefix="/api")
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     logger.error(f"Internal server error processing {request.method} {request.url.path}: {exc}", exc_info=True)
+    origin = request.headers.get("origin", "")
+    allowed_origin = origin if ("onrender.com" in origin or "localhost" in origin or origin in settings.CORS_ORIGINS) else (settings.CORS_ORIGINS[0] if settings.CORS_ORIGINS else "*")
+    headers = {
+        "Access-Control-Allow-Origin": allowed_origin,
+        "Access-Control-Allow-Credentials": "true",
+        "Access-Control-Allow-Methods": "*",
+        "Access-Control-Allow-Headers": "*",
+    }
     return JSONResponse(
         status_code=500,
-        content={"detail": "An internal server error occurred. Telemetry has been recorded."}
+        content={"detail": "An internal server error occurred. Telemetry has been recorded."},
+        headers=headers
     )
 
 @app.get("/api/health", tags=["System"])

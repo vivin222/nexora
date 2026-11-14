@@ -129,6 +129,7 @@ def run_database_expansion():
 
         # Ensure canonical benchmark student records exist for institutional oversight
         benchmark_students = [
+            ("learner-default-student", "learner@university.edu", "Demo Scholar", "Undergraduate Scholar | Adaptive Career Pathways", "Undergraduate", "Stanford University", "Computer Science", "2026", "career-full-stack-developer"),
             ("learner-alex-mercer", "alex.mercer@nexora.ai", "Alex Mercer", "Senior CS Undergraduate | Aspiring Full Stack Architect", "Undergraduate", "Stanford University", "Computer Science", "2026", "career-full-stack-developer"),
             ("learner-sarah-chen", "sarah.chen@mit.edu", "Sarah Chen", "Graduate Researcher | Deep Learning & LLM Systems", "Postgraduate", "Massachusetts Institute of Technology", "Electrical Engineering & Computer Science", "2026", "career-ai-ml-engineer"),
             ("learner-marcus-vance", "marcus.vance@berkeley.edu", "Marcus Vance", "Distributed Systems & Cloud Platform Engineer", "Undergraduate", "UC Berkeley", "Computer Science", "2025", "career-cloud-devops-architect")

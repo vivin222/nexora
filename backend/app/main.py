@@ -78,6 +78,7 @@ def health_check():
         "tagline": settings.TAGLINE
     }
 
+@app.get("/", tags=["System"])
 @app.get("/api", tags=["System"])
 def root_info():
     return {
@@ -85,5 +86,7 @@ def root_info():
         "tagline": settings.TAGLINE,
         "version": settings.VERSION,
         "status": "ONLINE",
-        "docs": "/docs"
+        "docs": "/docs",
+        "health": "/api/health",
+        "frontend": "http://localhost:5173"
     }

@@ -11,6 +11,7 @@ import { CtaBanner } from './components/landing/CtaBanner';
 import { DashboardLayout, DashboardTab } from './components/dashboard/DashboardLayout';
 import { OverviewView } from './components/dashboard/OverviewView';
 import { CareerTwinView } from './components/dashboard/CareerTwinView';
+import { CareerReadinessView } from './components/dashboard/CareerReadinessView';
 import { SkillDependencyGraph } from './components/dashboard/SkillDependencyGraph';
 import { ProjectRecommendationEngine } from './components/dashboard/ProjectRecommendationEngine';
 import { IndustrySkillTrends } from './components/dashboard/IndustrySkillTrends';
@@ -335,6 +336,12 @@ export function App() {
               profile={profile}
               onNavigateTab={setCurrentTab}
               onRefreshAll={fetchGlobalData}
+            />
+          )}
+
+          {currentTab === 'readiness' && (
+            <CareerReadinessView
+              onNavigateTab={setCurrentTab}
             />
           )}
 

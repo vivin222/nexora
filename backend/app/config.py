@@ -29,6 +29,15 @@ class Settings:
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24  # 1 day
 
+    # OAuth Providers
+    GOOGLE_CLIENT_ID: str = os.getenv("GOOGLE_CLIENT_ID", "")
+    GITHUB_CLIENT_ID: str = os.getenv("GITHUB_CLIENT_ID", "")
+    GITHUB_CLIENT_SECRET: str = os.getenv("GITHUB_CLIENT_SECRET", "")
+
+    # Jury Evaluation Credentials (Provisioned via Render Environment Variables)
+    JURY_ADMIN_EMAIL: str = os.getenv("JURY_ADMIN_EMAIL", "jury-admin@nexora.ai")
+    JURY_ADMIN_PASSWORD: str = os.getenv("JURY_ADMIN_PASSWORD", "NexoraJury2026!Evaluator")
+
     # CORS
     CORS_ORIGINS: list[str] = [
         "http://localhost:5173",

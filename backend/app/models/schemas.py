@@ -40,6 +40,66 @@ class AuthResponse(BaseModel):
 class ForgotPasswordRequest(BaseModel):
     email: str
 
+class GoogleAuthRequest(BaseModel):
+    id_token: str
+    credential: Optional[str] = None
+
+class GitHubAuthRequest(BaseModel):
+    code: str
+    redirect_uri: Optional[str] = None
+
+class JuryLoginRequest(BaseModel):
+    passkey: Optional[str] = None
+
+class ActivityTimelineEvent(BaseModel):
+    id: str
+    event_type: str
+    title: str
+    description: str
+    category: str
+    timestamp: str
+    metadata: Optional[Dict[str, Any]] = {}
+
+class CareerReadinessReport(BaseModel):
+    learner_id: str
+    career_id: str
+    career_title: str
+    readiness_score: int
+    readiness_level: str
+    score_breakdown: Dict[str, Any]
+    formula_explanation: str
+    verified_skills_count: int
+    skill_gap_count: int
+    top_strengths: List[Dict[str, Any]]
+    critical_gaps: List[Dict[str, Any]]
+    recommended_sprints: List[Dict[str, Any]]
+    estimated_weeks_to_market_ready: int
+
+class WeeklyGrowthReview(BaseModel):
+    learner_id: str
+    week_start: str
+    hours_invested: float
+    target_hours: float
+    modules_completed: int
+    assessments_completed: int
+    average_assessment_score: float
+    streak_days: int
+    velocity_indicator: str
+    neglected_skills: List[str]
+    ai_sprint_actions: List[Dict[str, Any]]
+
+class AdminPlatformHealth(BaseModel):
+    status: str
+    database_status: str
+    total_registered_learners: int
+    active_students: int
+    admin_accounts: int
+    total_assessments_taken: int
+    total_coding_solutions: int
+    total_project_milestones: int
+    ai_agent_status: str
+    model_version: str
+
 # --- Admin Management Schemas ---
 class AdminStudentActionRequest(BaseModel):
     status: Optional[str] = None

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Users, 
   UserCheck, 
@@ -13,9 +13,12 @@ import {
   Code2,
   Clock,
   Sparkles,
-  Building2
+  Building2,
+  Activity,
+  Cpu
 } from 'lucide-react';
-import { AdminStats } from '../../types';
+import { AdminStats, AdminPlatformHealth } from '../../types';
+import { api } from '../../api/client';
 import { Badge } from '../common/Badge';
 import { Button } from '../common/Button';
 import { AdminTab } from './AdminPortalLayout';
@@ -31,6 +34,14 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
   loading,
   onNavigateTab
 }) => {
+  const [platformHealth, setPlatformHealth] = useState<AdminPlatformHealth | null>(null);
+
+  useEffect(() => {
+    api.getPlatformHealth()
+      .then(setPlatformHealth)
+      .catch(err => console.warn('Could not fetch platform health:', err));
+  }, []);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -98,6 +109,49 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
           </Button>
         </div>
       </div>
+
+      {/* Live Platform Health Diagnostic Panel */}
+      {platformHealth && (
+        <div className="bg-[#0B0F12] border border-white/10 rounded-2xl p-5 space-y-3 shadow-xl">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-white/5">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#C5F45B] animate-pulse" />
+              <span className="text-xs font-mono font-bold text-white uppercase tracking-wider">System Status: {platformHealth.status}</span>
+              <Badge variant="cyan" size="sm">{platformHealth.database_status}</Badge>
+            </div>
+            <div className="text-[11px] font-mono text-zinc-400">
+              AI Engine: <span className="text-[#35D9F2]">{platformHealth.model_version}</span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 text-xs font-mono">
+            <div className="bg-[#11171B] p-3 rounded-xl border border-white/5">
+              <div className="text-[10px] text-zinc-500 uppercase">Enrolled Learners</div>
+              <div className="text-lg font-bold text-white mt-0.5">{platformHealth.total_registered_learners}</div>
+            </div>
+            <div className="bg-[#11171B] p-3 rounded-xl border border-white/5">
+              <div className="text-[10px] text-zinc-500 uppercase">Active Students</div>
+              <div className="text-lg font-bold text-[#C5F45B] mt-0.5">{platformHealth.active_students}</div>
+            </div>
+            <div className="bg-[#11171B] p-3 rounded-xl border border-white/5">
+              <div className="text-[10px] text-zinc-500 uppercase">Admin Accounts</div>
+              <div className="text-lg font-bold text-amber-400 mt-0.5">{platformHealth.admin_accounts}</div>
+            </div>
+            <div className="bg-[#11171B] p-3 rounded-xl border border-white/5">
+              <div className="text-[10px] text-zinc-500 uppercase">Lessons Mastered</div>
+              <div className="text-lg font-bold text-[#35D9F2] mt-0.5">{platformHealth.total_assessments_taken}</div>
+            </div>
+            <div className="bg-[#11171B] p-3 rounded-xl border border-white/5">
+              <div className="text-[10px] text-zinc-500 uppercase">Coding Solutions</div>
+              <div className="text-lg font-bold text-white mt-0.5">{platformHealth.total_coding_solutions}</div>
+            </div>
+            <div className="bg-[#11171B] p-3 rounded-xl border border-white/5">
+              <div className="text-[10px] text-zinc-500 uppercase">Project Milestones</div>
+              <div className="text-lg font-bold text-[#C5F45B] mt-0.5">{platformHealth.total_project_milestones}</div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* KPI Metrics Grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">

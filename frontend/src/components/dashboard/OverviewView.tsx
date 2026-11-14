@@ -312,10 +312,10 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
               Recent System Activity
             </h3>
             <button 
-              onClick={() => onNavigateTab('agents')}
+              onClick={() => onNavigateTab('readiness')}
               className="text-xs text-[#35D9F2] hover:underline font-mono cursor-pointer"
             >
-              View Full Telemetry →
+              Full Readiness & Timeline →
             </button>
           </div>
 

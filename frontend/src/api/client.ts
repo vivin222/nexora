@@ -27,7 +27,11 @@ import {
   AdminStats,
   AdminStudentItem,
   AdminAuditLogItem,
-  AdminResourceItem
+  AdminResourceItem,
+  ActivityTimelineEvent,
+  CareerReadinessReport,
+  WeeklyGrowthReview,
+  AdminPlatformHealth
 } from '../types';
 
 const API_BASE = (import.meta as any).env?.VITE_API_URL 
@@ -88,12 +92,32 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ email, password }),
     }),
+  googleLogin: (idToken: string, credential?: string) =>
+    fetchJSON<AuthResponse>('/auth/google', {
+      method: 'POST',
+      body: JSON.stringify({ id_token: idToken, credential }),
+    }),
+  githubLogin: (code: string, redirectUri?: string) =>
+    fetchJSON<AuthResponse>('/auth/github', {
+      method: 'POST',
+      body: JSON.stringify({ code, redirect_uri: redirectUri }),
+    }),
+  juryLogin: (passkey?: string) =>
+    fetchJSON<AuthResponse>('/auth/jury-login', {
+      method: 'POST',
+      body: JSON.stringify({ passkey }),
+    }),
   getCurrentUser: () => fetchJSON<UserResponse>('/auth/me'),
   forgotPassword: (email: string) =>
     fetchJSON<{ status: string; message: string }>('/auth/forgot-password', {
       method: 'POST',
       body: JSON.stringify({ email }),
     }),
+
+  // Student Timeline & High-Value Intelligence
+  getTimeline: () => fetchJSON<ActivityTimelineEvent[]>('/profile/timeline'),
+  getReadinessReport: () => fetchJSON<CareerReadinessReport>('/profile/readiness-report'),
+  getWeeklyGrowth: () => fetchJSON<WeeklyGrowthReview>('/profile/weekly-growth'),
 
   // Onboarding & Profile Intelligence
   submitOnboarding: (data: OnboardingSubmitPayload) =>
@@ -313,4 +337,5 @@ export const api = {
       method: 'DELETE',
     }),
   getAdminAuditLogs: () => fetchJSON<AdminAuditLogItem[]>('/admin/audit-logs'),
+  getPlatformHealth: () => fetchJSON<AdminPlatformHealth>('/admin/platform-health'),
 };

@@ -514,3 +514,74 @@ export interface CareerOpportunity {
   match_score?: number;
   is_demo?: number;
 }
+
+export interface ActivityTimelineEvent {
+  id: string;
+  event_type: string;
+  title: string;
+  description: string;
+  category: string;
+  timestamp: string;
+  metadata?: Record<string, any>;
+}
+
+export interface CareerReadinessReport {
+  learner_id: string;
+  career_id: string;
+  career_title: string;
+  readiness_score: number;
+  readiness_level: string;
+  score_breakdown: {
+    skill_matrix_score: number;
+    project_portfolio_score: number;
+    coding_competency_score: number;
+    assessment_accuracy_score: number;
+    completed_projects_count: number;
+    coding_problems_passed: number;
+    verified_skills_count: number;
+  };
+  formula_explanation: string;
+  verified_skills_count: number;
+  skill_gap_count: number;
+  top_strengths: DetailedGap[];
+  critical_gaps: DetailedGap[];
+  recommended_sprints: Array<{
+    sprint_number: number;
+    focus_skill: string;
+    objective: string;
+    recommended_action: string;
+  }>;
+  estimated_weeks_to_market_ready: number;
+}
+
+export interface WeeklyGrowthReview {
+  learner_id: string;
+  week_start: string;
+  hours_invested: number;
+  target_hours: number;
+  modules_completed: number;
+  assessments_completed: number;
+  average_assessment_score: number;
+  streak_days: number;
+  velocity_indicator: string;
+  neglected_skills: string[];
+  ai_sprint_actions: Array<{
+    priority: string;
+    title: string;
+    estimated_time: string;
+    impact: string;
+  }>;
+}
+
+export interface AdminPlatformHealth {
+  status: string;
+  database_status: string;
+  total_registered_learners: number;
+  active_students: number;
+  admin_accounts: number;
+  total_assessments_taken: number;
+  total_coding_solutions: number;
+  total_project_milestones: number;
+  ai_agent_status: string;
+  model_version: string;
+}

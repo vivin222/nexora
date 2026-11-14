@@ -34,6 +34,12 @@ In the Render dashboard, set the following environment variables:
 |---|---|---|
 | `GEMINI_API_KEY` | Google Gemini API Key for AI Agents | `AIzaSy...` (Required for live AI) |
 | `FRONTEND_URL` | Allowed CORS origin for frontend | `https://nexora-web.onrender.com` |
+| `SECRET_KEY` | Session and token signing key | Strong random string |
+| `GOOGLE_CLIENT_ID` | Google OAuth 2.0 Web Client ID | `<client-id>.apps.googleusercontent.com` |
+| `GITHUB_CLIENT_ID` | GitHub OAuth App Client ID | `Ov23...` |
+| `GITHUB_CLIENT_SECRET` | GitHub OAuth App Client Secret | `<github-secret>` |
+| `JURY_ADMIN_EMAIL` | Jury Evaluator Admin Account Email | `jury-admin@nexora.ai` (Default) |
+| `JURY_ADMIN_PASSWORD` | Jury Evaluator Admin Password | Provisioned securely via Render env |
 | `ENVIRONMENT` | Operational environment | `production` |
 | `PYTHON_VERSION` | Python runtime version | `3.11.9` |
 
@@ -41,6 +47,8 @@ In the Render dashboard, set the following environment variables:
 | Variable | Description | Example |
 |---|---|---|
 | `VITE_API_URL` | Full URL to the deployed backend service | `https://nexora-api.onrender.com` |
+| `VITE_GOOGLE_CLIENT_ID` | Google OAuth Client ID for frontend | `<client-id>.apps.googleusercontent.com` |
+| `VITE_GITHUB_CLIENT_ID` | GitHub OAuth Client ID for frontend | `Ov23...` |
 
 ---
 
@@ -62,24 +70,27 @@ In the Render dashboard, set the following environment variables:
 - **Activation:** Instantaneous upon form submission. Zero administrator approval, invitation, or manual verification required.
 - **Workflow:** Registration $\rightarrow$ Immediate active account $\rightarrow$ Onboarding Wizard (Resume extraction & goal calibration) $\rightarrow$ Student Workspace.
 
-### Dedicated Institutional Admin Portal
-- **Direct Route:** [http://localhost:5173/admin/login](http://localhost:5173/admin/login) or [http://localhost:5173/admin](http://localhost:5173/admin)
+### Dedicated Institutional Admin Portal & Jury Access
+- **Direct Routes:** [http://localhost:5173/admin/login](http://localhost:5173/admin/login) or [http://localhost:5173/admin](http://localhost:5173/admin)
 - **Visible Link:** Click **Admin Login** in the top navigation bar or on the sign-in modal.
+- **Jury & Hackathon Evaluation Access:**
+  - Evaluators and judges can access the administrator portal using the **1-Click Jury Admin Sign-In** button on `/admin/login`, or by supplying the configured jury evaluation passkey.
+  - Zero hardcoded passwords exposed in client code.
+  - Backed by environment variables `JURY_ADMIN_EMAIL` (`jury-admin@nexora.ai`) and `JURY_ADMIN_PASSWORD` (`NexoraJury2026!Evaluator`).
+  - Strict RBAC: Any non-admin student token attempting to query `/api/admin/*` receives an immediate `403 Forbidden`.
 - **Default Bootstrap Administrator:**
   - **Email:** `admin@nexora.ai`
   - **Password:** `AdminPassword2026!`
   - **Role:** `admin` (enforced via backend RBAC at `/api/auth/admin-login` and `/api/admin/*`)
-- **Production Secure Admin Provisioning:**
-  To provision custom administrators in production without using default credentials:
-  1. Set environment variables `ADMIN_EMAIL` and `ADMIN_INITIAL_PASSWORD` before first startup.
-  2. Or run the admin CLI helper in production:
-     ```bash
-     python -c "from app.database import get_db; from app.services.security import hash_password; ... "
-     ```
-  3. Student accounts are strictly prohibited from accessing admin endpoints (enforced by `require_admin` dependency returning HTTP 403 Forbidden).
+- **Password Visibility:**
+  - Password inputs across both student and administrator interfaces feature an interactive show/hide toggle (Eye icon) for friction-free authentication.
+- **Google & GitHub OAuth Integration:**
+  - Student registration and login feature official Google and GitHub OAuth options.
+  - Backend verifies identity tokens directly with identity provider APIs and auto-provisions student accounts with immediate activation and zero administrative friction.
 
 ### Admin Responsibilities
 Administrators oversee institutional health rather than gating student registrations:
+- **Platform Health Diagnostics:** Live inspection of database connectivity, student enrollment volume, practice problem completions, and AI model health (`/api/admin/platform-health`).
 - **Intake & Metrics:** Live telemetry of total students, daily registration volume, active vs. suspended counts.
 - **Student Directory & Moderation:** Search/filter learners, view neural competency vectors, and suspend/reactivate accounts when justified.
 - **Curriculum Architecture:** Link open-access documentation and interactive labs into student roadmaps (100% free of course selling).
@@ -114,7 +125,7 @@ Access the application at `http://localhost:5173`.
 Run all test suites locally prior to deployment:
 
 ```bash
-# Backend pytest suite (18 tests including admin portal RBAC):
+# Backend pytest suite (25 tests including OAuth, jury access, readiness diagnostic, and admin RBAC):
 cd backend
 venv\Scripts\python -m pytest tests/ -v
 

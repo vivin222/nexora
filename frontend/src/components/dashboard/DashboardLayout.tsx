@@ -30,6 +30,7 @@ import { LearnerProfile, ProgressOverview } from '../../types';
 export type DashboardTab = 
   | 'overview' 
   | 'career-twin'
+  | 'readiness'
   | 'skill-graph'
   | 'project-recommendations'
   | 'industry-trends'
@@ -71,6 +72,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
       items: [
         { id: 'overview' as DashboardTab, label: 'Overview', icon: <LayoutDashboard className="w-4 h-4" /> },
         { id: 'career-twin' as DashboardTab, label: 'AI Career Twin', icon: <Sparkles className="w-4 h-4 text-[#35D9F2]" />, highlight: 'cyan' },
+        { id: 'readiness' as DashboardTab, label: 'Readiness & Activity', icon: <Target className="w-4 h-4 text-[#C5F45B]" />, highlight: 'lime' },
         { id: 'skill-graph' as DashboardTab, label: 'Skill Prerequisite DAG', icon: <GitFork className="w-4 h-4" /> },
         { id: 'project-recommendations' as DashboardTab, label: 'AI Project Engine', icon: <FolderGit2 className="w-4 h-4 text-[#C5F45B]" />, highlight: 'lime' },
         { id: 'industry-trends' as DashboardTab, label: 'Industry Trends & Data', icon: <TrendingUp className="w-4 h-4" /> },

@@ -19,6 +19,18 @@ services:
         value: production
       - key: FRONTEND_URL
         value: https://nexora-web.onrender.com
+      - key: SECRET_KEY
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GITHUB_CLIENT_ID
+        sync: false
+      - key: GITHUB_CLIENT_SECRET
+        sync: false
+      - key: JURY_ADMIN_EMAIL
+        value: jury-admin@nexora.ai
+      - key: JURY_ADMIN_PASSWORD
+        sync: false
 
   # NEXORA React Frontend Static Site
   - type: web
@@ -37,3 +49,7 @@ services:
     envVars:
       - key: VITE_API_URL
         value: https://nexora-api.onrender.com
+      - key: VITE_GOOGLE_CLIENT_ID
+        sync: false
+      - key: VITE_GITHUB_CLIENT_ID
+        sync: false

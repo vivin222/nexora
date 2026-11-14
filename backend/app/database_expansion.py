@@ -48,9 +48,27 @@ def run_database_expansion():
         _safe_add_column(cursor, "learners", "institution", "TEXT DEFAULT ''")
         _safe_add_column(cursor, "learners", "department", "TEXT DEFAULT ''")
         _safe_add_column(cursor, "learners", "graduation_year", "TEXT DEFAULT ''")
+        _safe_add_column(cursor, "learners", "google_id", "TEXT DEFAULT ''")
+        _safe_add_column(cursor, "learners", "github_id", "TEXT DEFAULT ''")
+        _safe_add_column(cursor, "learners", "auth_provider", "TEXT DEFAULT 'local'")
 
         # Migrate all existing pending accounts to approved / active
         cursor.execute("UPDATE learners SET status = 'approved' WHERE status = 'pending' AND role = 'student'")
+
+        # Student Activity Timeline Table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS activity_timeline (
+                id TEXT PRIMARY KEY,
+                learner_id TEXT NOT NULL,
+                event_type TEXT NOT NULL,
+                title TEXT NOT NULL,
+                description TEXT NOT NULL,
+                category TEXT DEFAULT 'system',
+                metadata TEXT DEFAULT '{}',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (learner_id) REFERENCES learners(id) ON DELETE CASCADE
+            );
+        """)
 
         # Admin Audit Logs Table
         cursor.execute("""
@@ -67,9 +85,11 @@ def run_database_expansion():
         """)
 
         # Ensure bootstrap administrator exists
+        from app.config import settings
+        from app.services.security import hash_password
+
         cursor.execute("SELECT id FROM learners WHERE email = 'admin@nexora.ai'")
         if not cursor.fetchone():
-            from app.services.security import hash_password
             admin_id = "admin-sys-root"
             cursor.execute("""
                 INSERT INTO learners (id, email, password_hash, full_name, headline, role, status, is_demo)
@@ -79,6 +99,28 @@ def run_database_expansion():
                 INSERT OR IGNORE INTO profiles (id, learner_id, target_career_id, onboarding_completed)
                 VALUES (?, ?, 'career-full-stack-developer', 1)
             """, (str(uuid.uuid4()), admin_id))
+
+        # Ensure Jury Administrator account is provisioned for judging / evaluation access
+        jury_email = settings.JURY_ADMIN_EMAIL
+        jury_pwd = settings.JURY_ADMIN_PASSWORD
+        cursor.execute("SELECT id FROM learners WHERE email = ?", (jury_email,))
+        existing_jury = cursor.fetchone()
+        if not existing_jury:
+            jury_id = f"admin-jury-{uuid.uuid4().hex[:8]}"
+            cursor.execute("""
+                INSERT INTO learners (id, email, password_hash, full_name, headline, role, status, is_demo, auth_provider)
+                VALUES (?, ?, ?, 'Jury & Evaluation Lead', 'Hackathon / Assessment Review Administrator', 'admin', 'approved', 0, 'jury')
+            """, (jury_id, jury_email, hash_password(jury_pwd)))
+            cursor.execute("""
+                INSERT OR IGNORE INTO profiles (id, learner_id, target_career_id, onboarding_completed)
+                VALUES (?, ?, 'career-full-stack-developer', 1)
+            """, (str(uuid.uuid4()), jury_id))
+        else:
+            # Update password hash to match current environment variable setting
+            cursor.execute("""
+                UPDATE learners SET password_hash = ?, role = 'admin', status = 'approved'
+                WHERE email = ?
+            """, (hash_password(jury_pwd), jury_email))
 
         # 1. Learning Center: Courses
         cursor.execute("""

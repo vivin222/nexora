@@ -31,7 +31,6 @@ import { SettingsView } from './components/dashboard/SettingsView';
 
 import { OnboardingWizard } from './components/onboarding/OnboardingWizard';
 import { AuthModal } from './components/auth/AuthModal';
-import { PendingApprovalView } from './components/auth/PendingApprovalView';
 
 // Admin Portal Components
 import { AdminPortalLayout, AdminTab } from './components/admin/AdminPortalLayout';
@@ -53,7 +52,7 @@ import {
 } from './types';
 
 export function App() {
-  const [currentView, setCurrentView] = useState<'landing' | 'onboarding' | 'dashboard' | 'pending-approval' | 'admin'>('landing');
+  const [currentView, setCurrentView] = useState<'landing' | 'onboarding' | 'dashboard' | 'admin'>('landing');
   const [currentTab, setCurrentTab] = useState<DashboardTab>('overview');
   const [adminTab, setAdminTab] = useState<AdminTab>('dashboard');
   
@@ -71,7 +70,7 @@ export function App() {
 
   // Auth Modal State
   const [authModalOpen, setAuthModalOpen] = useState<boolean>(false);
-  const [authModalMode, setAuthModalMode] = useState<'login' | 'register' | 'forgot'>('login');
+  const [authModalMode, setAuthModalMode] = useState<'login' | 'register' | 'forgot' | 'admin-login'>('login');
 
   const fetchGlobalData = async () => {
     try {
@@ -108,84 +107,116 @@ export function App() {
     }
   };
 
-  const routeUserBasedOnState = (userData: UserResponse) => {
-    if (userData.role === 'admin') {
-      setCurrentView('admin');
-      fetchAdminData();
-      return;
+  const handleOpenAuth = (mode: 'login' | 'register' | 'admin-login' = 'login') => {
+    setAuthModalMode(mode);
+    setAuthModalOpen(true);
+    if (mode === 'admin-login' && window.location.pathname !== '/admin/login') {
+      window.history.pushState({}, '', '/admin/login');
     }
-
-    if (userData.status === 'pending' || userData.status === 'rejected') {
-      setCurrentView('pending-approval');
-      return;
-    }
-
-    if (!userData.onboarding_completed) {
-      setCurrentView('onboarding');
-      return;
-    }
-
-    setCurrentView('dashboard');
   };
 
-  // Restore authenticated session on mount
+  const navigateToView = (view: 'landing' | 'onboarding' | 'dashboard' | 'admin') => {
+    setCurrentView(view);
+    if (view === 'admin') {
+      window.history.pushState({}, '', '/admin');
+      fetchAdminData();
+    } else if (view === 'dashboard') {
+      window.history.pushState({}, '', '/dashboard');
+    } else if (view === 'landing') {
+      window.history.pushState({}, '', '/');
+    }
+  };
+
+  // Restore authenticated session on mount & handle browser path routing
   useEffect(() => {
     const initSession = async () => {
+      const path = window.location.pathname;
       const token = localStorage.getItem('nexora_token');
+
+      let currentUser: UserResponse | null = null;
       if (token) {
         try {
-          const userData = await api.getCurrentUser();
-          setUser(userData);
-          await fetchGlobalData();
-          routeUserBasedOnState(userData);
+          currentUser = await api.getCurrentUser();
+          setUser(currentUser);
         } catch (err) {
           console.warn('Session expired or invalid token:', err);
           localStorage.removeItem('nexora_token');
-          setUser(null);
-          setProfile(null);
-          setProgress(null);
-          setCurrentView('landing');
+          currentUser = null;
         }
       }
+
+      // Check routes
+      if (path === '/admin/login') {
+        if (currentUser && currentUser.role === 'admin') {
+          navigateToView('admin');
+        } else {
+          setCurrentView('landing');
+          handleOpenAuth('admin-login');
+        }
+      } else if (path.startsWith('/admin')) {
+        if (currentUser && currentUser.role === 'admin') {
+          navigateToView('admin');
+        } else {
+          setCurrentView('landing');
+          handleOpenAuth('admin-login');
+        }
+      } else if (currentUser) {
+        await fetchGlobalData();
+        if (currentUser.role === 'admin') {
+          navigateToView('admin');
+        } else if (!currentUser.onboarding_completed) {
+          setCurrentView('onboarding');
+        } else {
+          navigateToView('dashboard');
+        }
+      } else {
+        if (path === '/login') {
+          handleOpenAuth('login');
+        } else if (path === '/register') {
+          handleOpenAuth('register');
+        }
+        setCurrentView('landing');
+      }
+
       setLoading(false);
     };
 
     initSession();
-  }, []);
 
-  const handleOpenAuth = (mode: 'login' | 'register' = 'login') => {
-    setAuthModalMode(mode);
-    setAuthModalOpen(true);
-  };
+    const handlePopState = () => {
+      const p = window.location.pathname;
+      if (p === '/admin/login') {
+        handleOpenAuth('admin-login');
+      } else if (p.startsWith('/admin')) {
+        if (user?.role === 'admin') {
+          setCurrentView('admin');
+        } else {
+          handleOpenAuth('admin-login');
+        }
+      } else if (p === '/dashboard' && user) {
+        setCurrentView('dashboard');
+      } else if (p === '/') {
+        setCurrentView('landing');
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   const handleAuthSuccess = async (authUser: UserResponse, onboardingCompleted: boolean) => {
     setUser(authUser);
     if (authUser.role === 'admin') {
-      setCurrentView('admin');
-      await fetchAdminData();
+      navigateToView('admin');
       return;
     }
 
-    if (authUser.status === 'pending' || authUser.status === 'rejected') {
-      setCurrentView('pending-approval');
-      return;
-    }
-
+    // Regular student: active immediately!
     if (!onboardingCompleted) {
       setCurrentView('onboarding');
     } else {
       await fetchGlobalData();
-      setCurrentView('dashboard');
-    }
-  };
-
-  const handleRefreshUser = async () => {
-    try {
-      const refreshed = await api.getCurrentUser();
-      setUser(refreshed);
-      routeUserBasedOnState(refreshed);
-    } catch (err) {
-      console.error('Failed to refresh user:', err);
+      navigateToView('dashboard');
     }
   };
 
@@ -194,7 +225,7 @@ export function App() {
     setUser(null);
     setProfile(null);
     setProgress(null);
-    setCurrentView('landing');
+    navigateToView('landing');
   };
 
   const handleLaunchDashboard = () => {
@@ -202,7 +233,15 @@ export function App() {
       handleOpenAuth('register');
       return;
     }
-    routeUserBasedOnState(user);
+    if (user.role === 'admin') {
+      navigateToView('admin');
+      return;
+    }
+    if (!user.onboarding_completed) {
+      setCurrentView('onboarding');
+      return;
+    }
+    navigateToView('dashboard');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -218,20 +257,9 @@ export function App() {
     if (user) {
       setUser({ ...user, onboarding_completed: true, status: 'approved' });
     }
-    setCurrentView('dashboard');
+    navigateToView('dashboard');
     setCurrentTab('overview');
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  // Admin Actions
-  const handleApproveStudent = async (studentId: string) => {
-    await api.approveStudent(studentId);
-    await fetchAdminData();
-  };
-
-  const handleRejectStudent = async (studentId: string, reason: string) => {
-    await api.rejectStudent(studentId, reason);
-    await fetchAdminData();
   };
 
   const handleCreateResource = async (data: Partial<AdminResourceItem>) => {
@@ -244,8 +272,6 @@ export function App() {
     await fetchAdminData();
   };
 
-  const pendingCount = adminStudents.filter(s => s.status === 'pending').length;
-
   return (
     <div className="min-h-screen bg-[#050608] text-[#F5F7F4] flex flex-col selection:bg-[#35D9F2] selection:text-[#050608]">
       {/* Top Universal Navbar */}
@@ -253,12 +279,11 @@ export function App() {
         currentView={currentView}
         onNavigate={(v) => {
           if (v === 'admin' && user?.role === 'admin') {
-            setCurrentView('admin');
-            fetchAdminData();
+            navigateToView('admin');
           } else if (v === 'dashboard') {
-            setCurrentView('dashboard');
+            navigateToView('dashboard');
           } else {
-            setCurrentView(v);
+            navigateToView('landing');
           }
         }}
         user={user}
@@ -281,19 +306,11 @@ export function App() {
         </div>
       )}
 
-      {currentView === 'pending-approval' && user && (
-        <PendingApprovalView
-          user={user}
-          onRefreshUser={handleRefreshUser}
-          onSignOut={handleSignOut}
-        />
-      )}
-
       {currentView === 'onboarding' && (
         <OnboardingWizard
           currentUser={user}
           onComplete={handleOnboardingComplete}
-          onCancel={() => setCurrentView('landing')}
+          onCancel={() => navigateToView('landing')}
         />
       )}
 
@@ -422,7 +439,7 @@ export function App() {
           currentTab={adminTab}
           onTabChange={setAdminTab}
           user={user}
-          pendingCount={pendingCount}
+          pendingCount={adminStats?.new_registrations_today || 0}
           onSignOut={handleSignOut}
           onSwitchToStudentView={() => setCurrentView('dashboard')}
         >
@@ -436,10 +453,8 @@ export function App() {
 
           {adminTab === 'registrations' && (
             <AdminRegistrationsView
-              pendingStudents={adminStudents.filter(s => s.status === 'pending')}
+              students={adminStudents}
               loading={adminLoading}
-              onApprove={handleApproveStudent}
-              onReject={handleRejectStudent}
               onRefresh={fetchAdminData}
             />
           )}
@@ -479,7 +494,12 @@ export function App() {
       <AuthModal
         isOpen={authModalOpen}
         initialMode={authModalMode}
-        onClose={() => setAuthModalOpen(false)}
+        onClose={() => {
+          setAuthModalOpen(false);
+          if (window.location.pathname === '/admin/login' || window.location.pathname === '/login' || window.location.pathname === '/register') {
+            window.history.pushState({}, '', '/');
+          }
+        }}
         onSuccess={handleAuthSuccess}
       />
     </div>

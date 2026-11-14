@@ -49,6 +49,9 @@ def run_database_expansion():
         _safe_add_column(cursor, "learners", "department", "TEXT DEFAULT ''")
         _safe_add_column(cursor, "learners", "graduation_year", "TEXT DEFAULT ''")
 
+        # Migrate all existing pending accounts to approved / active
+        cursor.execute("UPDATE learners SET status = 'approved' WHERE status = 'pending' AND role = 'student'")
+
         # Admin Audit Logs Table
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS admin_audit_logs (

@@ -8,7 +8,7 @@ interface NavbarProps {
   onNavigate: (view: 'landing' | 'onboarding' | 'dashboard' | 'pending-approval' | 'admin') => void;
   onOpenSection?: (sectionId: string) => void;
   user: UserResponse | null;
-  onOpenAuth: (mode?: 'login' | 'register') => void;
+  onOpenAuth: (mode?: 'login' | 'register' | 'admin-login') => void;
   onSignOut: () => void;
 }
 
@@ -112,6 +112,14 @@ export const Navbar: React.FC<NavbarProps> = ({
           {!user ? (
             <div className="flex items-center gap-3">
               <button
+                onClick={() => onOpenAuth('admin-login')}
+                className="hidden sm:flex items-center gap-1.5 text-xs text-zinc-400 hover:text-[#35D9F2] font-mono transition-colors cursor-pointer mr-1"
+                title="Institutional Administrator Access"
+              >
+                <ShieldCheck className="w-3.5 h-3.5 text-zinc-500 hover:text-[#35D9F2]" />
+                <span>Admin Login</span>
+              </button>
+              <button
                 onClick={() => onOpenAuth('login')}
                 className="text-xs text-[#929CA3] hover:text-white font-medium transition-colors cursor-pointer"
               >
@@ -123,7 +131,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 size="md"
                 icon={<Sparkles className="w-4 h-4" />}
               >
-                Get Started
+                Get Started Free
                 <ArrowRight className="w-3.5 h-3.5 ml-1" />
               </Button>
             </div>

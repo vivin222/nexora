@@ -39,11 +39,11 @@ export const AdminPortalLayout: React.FC<AdminPortalLayoutProps> = ({
     { id: 'dashboard' as AdminTab, label: 'Dashboard & Metrics', icon: LayoutDashboard },
     { 
       id: 'registrations' as AdminTab, 
-      label: 'Registration Queue', 
+      label: 'Registrations & Activity', 
       icon: UserCheck, 
       badge: pendingCount > 0 ? pendingCount : undefined 
     },
-    { id: 'students' as AdminTab, label: 'Student Directory', icon: Users },
+    { id: 'students' as AdminTab, label: 'Student Directory & Moderation', icon: Users },
     { id: 'curriculum' as AdminTab, label: 'Curriculum Resources', icon: BookOpen },
     { id: 'audit-logs' as AdminTab, label: 'Audit Trail & Security', icon: FileText },
   ];

@@ -46,14 +46,23 @@ NEXORA rejects generic course catalogs. Instead of serving an identical static v
 
 ---
 
-## 2. Key Features
+## 4. Portals & Access Routes
 
-- **Void Black & Crimson Visual Identity**: Bespoke luxury interface inspired by modern aerospace telemetry and editorial technology interfaces. No generic purple AI templates.
-- **Deterministic Competency Scoring**: Career match percentage is calculated mathematically using weighted ratios ($P / R \times W$), ensuring repeatable, transparent metrics.
-- **Empirical Adaptive Quizzes**: Submissions dynamically adjust verified skill proficiency and trigger downstream roadmap adaptation in real time.
-- **Context-Injected AI Mentor**: Powered by Google Gemini (`google-genai` official SDK) with a high-fidelity local deterministic engine fallback when unauthenticated.
-- **Live Agent Telemetry Stream**: Transparent audit logs showing every agent action, input payload, output summary, and millisecond latency.
-- **Cross-Platform Responsive UI**: Fluid typography and layout engineered for desktop, tablet, and mobile displays without horizontal overflow.
+### Student Portal (Free & Open)
+- **Public URL:** `http://localhost:5173/` $\rightarrow$ **Get Started Free** (or `/register`)
+- **Open Registration:** Completely free for everyone with zero admin approval, invitation, or manual gating required.
+- **Immediate Activation:** Upon form submission, the student account is activated immediately and unlocks the 5-step Adaptive Onboarding Wizard and Student Workspace.
+
+### Dedicated Institutional Admin Portal
+- **Direct Routes:**
+  - Login: `http://localhost:5173/admin/login` (or click **Admin Login** in top navbar)
+  - Dashboard: `http://localhost:5173/admin`
+- **Security:** Protected by backend role verification at `/api/auth/admin-login` and `/api/admin/*`. Student tokens attempting to access admin APIs receive `403 Forbidden`.
+- **Admin Responsibilities:**
+  - Live intake telemetry (total students, daily velocity, active vs. suspended learners).
+  - Student moderation (inspect competency graphs and suspend/reactivate accounts).
+  - Curriculum resource management (linking open-access technical materials into roadmaps).
+  - Security audit logs with immutable event tracking.
 
 ---
 

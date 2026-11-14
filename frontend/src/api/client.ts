@@ -83,6 +83,11 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ email, password }),
     }),
+  adminLogin: (email: string, password: string) =>
+    fetchJSON<AuthResponse>('/auth/admin-login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    }),
   getCurrentUser: () => fetchJSON<UserResponse>('/auth/me'),
   forgotPassword: (email: string) =>
     fetchJSON<{ status: string; message: string }>('/auth/forgot-password', {
@@ -288,6 +293,14 @@ export const api = {
     fetchJSON<{ status: string; message: string }>(`/admin/students/${studentId}/status`, {
       method: 'POST',
       body: JSON.stringify({ status }),
+    }),
+  suspendStudent: (studentId: string) =>
+    fetchJSON<{ status: string; message: string }>(`/admin/students/${studentId}/suspend`, {
+      method: 'POST',
+    }),
+  reactivateStudent: (studentId: string) =>
+    fetchJSON<{ status: string; message: string }>(`/admin/students/${studentId}/reactivate`, {
+      method: 'POST',
     }),
   getAdminResources: () => fetchJSON<AdminResourceItem[]>('/admin/resources'),
   createAdminResource: (data: Partial<AdminResourceItem>) =>

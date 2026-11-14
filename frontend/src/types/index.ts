@@ -187,13 +187,27 @@ export interface AuthResponse {
 
 export interface AdminStats {
   total_students: number;
-  pending_registrations: number;
+  new_registrations_today?: number;
+  active_students?: number;
+  pending_registrations?: number;
   approved_students: number;
-  rejected_registrations: number;
+  rejected_registrations?: number;
   suspended_students: number;
   assessment_submissions: number;
+  coding_submissions?: number;
+  project_submissions?: number;
   skill_gap_distribution: Record<string, number>;
   registration_trends: Array<{ date: string; count: number }>;
+  recent_registrations?: Array<{
+    id: string;
+    email: string;
+    full_name: string;
+    status: string;
+    institution?: string;
+    department?: string;
+    created_at: string;
+    target_career_title?: string;
+  }>;
 }
 
 export interface AdminStudentItem {

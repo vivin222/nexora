@@ -33,6 +33,9 @@ def get_admin_dashboard_stats(admin_id: str = Depends(require_admin)):
         cursor.execute("SELECT COUNT(*) FROM learners WHERE role = 'student'")
         total_students = cursor.fetchone()[0]
 
+        cursor.execute("SELECT COUNT(*) FROM learners WHERE role = 'student' AND DATE(created_at) = DATE('now')")
+        new_registrations_today = cursor.fetchone()[0]
+
         cursor.execute("SELECT COUNT(*) FROM learners WHERE role = 'student' AND status = 'pending'")
         pending_students = cursor.fetchone()[0]
 
@@ -48,6 +51,13 @@ def get_admin_dashboard_stats(admin_id: str = Depends(require_admin)):
         # Assessment participation count
         cursor.execute("SELECT COUNT(*) FROM progress_records")
         assessment_submissions = cursor.fetchone()[0]
+
+        # Coding and Project counts
+        cursor.execute("SELECT COUNT(*) FROM coding_submissions")
+        coding_submissions = cursor.fetchone()[0]
+
+        cursor.execute("SELECT COUNT(*) FROM project_submissions")
+        project_submissions = cursor.fetchone()[0]
 
         # Skill gap distributions across enrolled learners
         cursor.execute("""
@@ -74,15 +84,33 @@ def get_admin_dashboard_stats(admin_id: str = Depends(require_admin)):
         trend_rows = cursor.fetchall()
         trends = [{"date": r["reg_date"], "count": r["count"]} for r in reversed(trend_rows)]
 
+        # Recent 6 registered students for monitoring
+        cursor.execute("""
+            SELECT l.id, l.email, l.full_name, l.status, l.institution, l.department, l.created_at,
+                   cr.title as target_career_title
+            FROM learners l
+            LEFT JOIN profiles p ON l.id = p.learner_id
+            LEFT JOIN career_roles cr ON p.target_career_id = cr.id
+            WHERE l.role = 'student'
+            ORDER BY l.created_at DESC
+            LIMIT 6
+        """)
+        recent_students = [dict(r) for r in cursor.fetchall()]
+
         return {
             "total_students": total_students,
+            "new_registrations_today": new_registrations_today,
             "pending_registrations": pending_students,
             "approved_students": approved_students,
+            "active_students": approved_students,
             "rejected_registrations": rejected_students,
             "suspended_students": suspended_students,
             "assessment_submissions": assessment_submissions,
+            "coding_submissions": coding_submissions,
+            "project_submissions": project_submissions,
             "skill_gap_distribution": skill_gaps,
-            "registration_trends": trends
+            "registration_trends": trends,
+            "recent_registrations": recent_students
         }
 
 @router.get("/students")
@@ -261,6 +289,42 @@ def update_student_status(student_id: str, payload: AdminStudentActionRequest, a
         })
 
         return {"status": "SUCCESS", "message": f"Account status updated to '{payload.status}'."}
+
+@router.post("/students/{student_id}/suspend")
+def suspend_student(student_id: str, admin_id: str = Depends(require_admin)):
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT id, email, full_name FROM learners WHERE id = ? AND role = 'student'", (student_id,))
+        student = cursor.fetchone()
+        if not student:
+            raise HTTPException(status_code=404, detail="Student not found.")
+
+        cursor.execute("UPDATE learners SET status = 'suspended' WHERE id = ?", (student_id,))
+        admin_email = get_admin_email(cursor, admin_id)
+        log_audit_event(cursor, admin_id, admin_email, "SUSPEND_STUDENT", "learner", student_id, {
+            "student_name": student["full_name"],
+            "student_email": student["email"]
+        })
+
+        return {"status": "SUCCESS", "message": f"Student account for '{student['full_name']}' has been suspended."}
+
+@router.post("/students/{student_id}/reactivate")
+def reactivate_student(student_id: str, admin_id: str = Depends(require_admin)):
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT id, email, full_name FROM learners WHERE id = ? AND role = 'student'", (student_id,))
+        student = cursor.fetchone()
+        if not student:
+            raise HTTPException(status_code=404, detail="Student not found.")
+
+        cursor.execute("UPDATE learners SET status = 'approved', rejection_reason = '' WHERE id = ?", (student_id,))
+        admin_email = get_admin_email(cursor, admin_id)
+        log_audit_event(cursor, admin_id, admin_email, "REACTIVATE_STUDENT", "learner", student_id, {
+            "student_name": student["full_name"],
+            "student_email": student["email"]
+        })
+
+        return {"status": "SUCCESS", "message": f"Student account for '{student['full_name']}' has been reactivated."}
 
 @router.get("/resources")
 def list_curriculum_resources(admin_id: str = Depends(require_admin)):

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { X, Lock, Mail, User, ArrowRight, Sparkles, CheckCircle2, ShieldCheck } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Lock, Mail, User, ArrowRight, Sparkles, CheckCircle2, ShieldCheck, ShieldAlert } from 'lucide-react';
 import { api } from '../../api/client';
 import { UserResponse } from '../../types';
 import { Button } from '../common/Button';
@@ -7,7 +7,7 @@ import { Badge } from '../common/Badge';
 
 interface AuthModalProps {
   isOpen: boolean;
-  initialMode?: 'login' | 'register' | 'forgot';
+  initialMode?: 'login' | 'register' | 'forgot' | 'admin-login';
   onClose: () => void;
   onSuccess: (user: UserResponse, onboardingCompleted: boolean) => void;
 }
@@ -18,7 +18,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   onClose,
   onSuccess,
 }) => {
-  const [mode, setMode] = useState<'login' | 'register' | 'forgot'>(initialMode);
+  const [mode, setMode] = useState<'login' | 'register' | 'forgot' | 'admin-login'>(initialMode);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
@@ -30,6 +30,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
+
+  useEffect(() => {
+    setMode(initialMode);
+    setError('');
+    setSuccessMsg('');
+  }, [initialMode, isOpen]);
 
   if (!isOpen) return null;
 
@@ -45,12 +51,18 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         localStorage.setItem('nexora_token', res.token);
         onSuccess(res.user, res.onboarding_completed);
         onClose();
+      } else if (mode === 'admin-login') {
+        const res = await api.adminLogin(email.trim(), password);
+        localStorage.setItem('nexora_token', res.token);
+        onSuccess(res.user, true);
+        onClose();
       } else if (mode === 'register') {
+        // Free open registration -> active immediately
         const res = await api.register({
           email: email.trim(),
           password,
           full_name: fullName.trim(),
-          headline: headline.trim() || `${educationLevel} in ${department || 'Computer Science'}`,
+          headline: headline.trim() || `${educationLevel} in ${department || 'Engineering'}`,
           education_level: educationLevel,
           institution: institution.trim(),
           department: department.trim(),
@@ -84,25 +96,34 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         {/* Modal Header */}
         <div className="mb-6">
           <div className="flex items-center gap-2 mb-2">
-            <div className="w-7 h-7 rounded-lg bg-[#35D9F2]/20 border border-[#35D9F2]/40 flex items-center justify-center font-bold text-[#35D9F2] text-xs font-mono">
-              N
+            <div className={`w-7 h-7 rounded-lg flex items-center justify-center font-bold text-xs font-mono ${
+              mode === 'admin-login' 
+                ? 'bg-amber-500/20 border border-amber-500/40 text-amber-400' 
+                : 'bg-[#35D9F2]/20 border border-[#35D9F2]/40 text-[#35D9F2]'
+            }`}>
+              {mode === 'admin-login' ? <ShieldCheck className="w-4 h-4" /> : 'N'}
             </div>
-            <Badge variant="cyan" size="sm">NEXORA IDENTITY</Badge>
+            <Badge variant={mode === 'admin-login' ? 'amber' : 'cyan'} size="sm">
+              {mode === 'admin-login' ? 'ADMINISTRATOR AUTHENTICATION' : 'NEXORA CAREER PLATFORM'}
+            </Badge>
           </div>
+
           <h2 className="text-2xl font-bold text-white tracking-tight">
             {mode === 'login' && 'Sign in to NEXORA'}
-            {mode === 'register' && 'Create your account'}
+            {mode === 'register' && 'Create Free Account'}
+            {mode === 'admin-login' && 'Administrator Portal'}
             {mode === 'forgot' && 'Reset your password'}
           </h2>
           <p className="text-xs text-[#929CA3] mt-1">
-            {mode === 'login' && 'Access your personalized learning roadmap and verified skill graph.'}
-            {mode === 'register' && 'Begin your customized AI career intelligence journey.'}
+            {mode === 'login' && 'Access your personalized adaptive learning roadmaps and AI Career Twin.'}
+            {mode === 'register' && '100% Free student registration. Instant activation with zero approval required.'}
+            {mode === 'admin-login' && 'Institutional platform monitoring, curriculum management, and audit logs.'}
             {mode === 'forgot' && 'Enter your registered email to receive a recovery link.'}
           </p>
         </div>
 
-        {/* Mode Switcher Tabs */}
-        {mode !== 'forgot' && (
+        {/* Student Mode Switcher Tabs */}
+        {mode !== 'forgot' && mode !== 'admin-login' && (
           <div className="grid grid-cols-2 bg-[#11171B] p-1 rounded-xl mb-6 border border-white/5 text-xs font-medium">
             <button
               onClick={() => { setMode('login'); setError(''); }}
@@ -118,7 +139,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 mode === 'register' ? 'bg-[#161D22] text-[#35D9F2] shadow-sm font-semibold' : 'text-zinc-400 hover:text-white'
               }`}
             >
-              Create Account
+              Free Registration
             </button>
           </div>
         )}
@@ -194,21 +215,19 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-mono text-zinc-400 mb-1">CAMPUS / UNIVERSITY *</label>
+                  <label className="block text-xs font-mono text-zinc-400 mb-1">CAMPUS / UNIVERSITY</label>
                   <input
                     type="text"
-                    required
-                    placeholder="e.g. Stanford University"
+                    placeholder="e.g. National Institute of Technology"
                     value={institution}
                     onChange={e => setInstitution(e.target.value)}
                     className="w-full bg-[#11171B] border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-[#35D9F2]"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-mono text-zinc-400 mb-1">DEPARTMENT *</label>
+                  <label className="block text-xs font-mono text-zinc-400 mb-1">DEPARTMENT</label>
                   <input
                     type="text"
-                    required
                     placeholder="e.g. Computer Science"
                     value={department}
                     onChange={e => setDepartment(e.target.value)}
@@ -220,13 +239,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           )}
 
           <div>
-            <label className="block text-xs font-mono text-zinc-400 mb-1">EMAIL ADDRESS *</label>
+            <label className="block text-xs font-mono text-zinc-400 mb-1">
+              {mode === 'admin-login' ? 'ADMINISTRATOR EMAIL *' : 'EMAIL ADDRESS *'}
+            </label>
             <div className="flex items-center gap-2 bg-[#11171B] border border-white/10 rounded-xl px-3.5 py-2.5 focus-within:border-[#35D9F2]">
               <Mail className="w-4 h-4 text-zinc-400" />
               <input
                 type="email"
                 required
-                placeholder="learner@university.edu"
+                placeholder={mode === 'admin-login' ? 'admin@nexora.ai' : 'learner@university.edu'}
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 className="bg-transparent flex-1 text-xs text-white placeholder-zinc-500 focus:outline-none"
@@ -270,24 +291,41 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             className="w-full mt-2"
             icon={loading ? undefined : <ArrowRight className="w-4 h-4" />}
           >
-            {loading ? 'Authenticating...' : mode === 'login' ? 'Sign In' : mode === 'register' ? 'Create Account & Start' : 'Send Reset Link'}
+            {loading 
+              ? 'Authenticating...' 
+              : mode === 'login' 
+              ? 'Sign In to Workspace' 
+              : mode === 'admin-login'
+              ? 'Sign In as Administrator'
+              : mode === 'register' 
+              ? 'Create Free Account & Start' 
+              : 'Send Reset Link'}
           </Button>
 
+          {/* Admin Switcher Link in Student Mode */}
           {mode === 'login' && (
-            <div className="pt-2 text-center">
-              <span className="text-[11px] text-zinc-500 font-mono">
-                Institutional Admin? Sign in with{' '}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEmail('admin@nexora.ai');
-                    setPassword('AdminPassword2026!');
-                  }}
-                  className="text-[#35D9F2] hover:underline"
-                >
-                  admin@nexora.ai
-                </button>
-              </span>
+            <div className="pt-3 text-center border-t border-white/5 mt-4">
+              <button
+                type="button"
+                onClick={() => { setMode('admin-login'); setError(''); setEmail(''); setPassword(''); }}
+                className="text-xs text-zinc-400 hover:text-[#35D9F2] flex items-center justify-center gap-1.5 mx-auto font-mono transition-colors cursor-pointer"
+              >
+                <ShieldCheck className="w-3.5 h-3.5 text-[#35D9F2]" />
+                <span>Institution Administrator? Admin Portal Login →</span>
+              </button>
+            </div>
+          )}
+
+          {/* Return to Student Mode Link in Admin Mode */}
+          {mode === 'admin-login' && (
+            <div className="pt-3 text-center border-t border-white/5 mt-4">
+              <button
+                type="button"
+                onClick={() => { setMode('login'); setError(''); setEmail(''); setPassword(''); }}
+                className="text-xs text-zinc-400 hover:text-white flex items-center justify-center gap-1.5 mx-auto font-mono transition-colors cursor-pointer"
+              >
+                <span>← Return to Student Sign In</span>
+              </button>
             </div>
           )}
 

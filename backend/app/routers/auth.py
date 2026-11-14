@@ -74,7 +74,7 @@ def register(req: RegisterRequest):
                 id, email, password_hash, full_name, headline, role, status, 
                 education_level, institution, department, graduation_year, is_demo
             )
-            VALUES (?, ?, ?, ?, ?, 'student', 'pending', ?, ?, ?, ?, 0)
+            VALUES (?, ?, ?, ?, ?, 'student', 'approved', ?, ?, ?, ?, 0)
         """, (
             user_id, req.email, hashed, req.full_name, req.headline or "NEXORA Student",
             req.education_level or "Undergraduate", req.institution or "", req.department or "", req.graduation_year or ""
@@ -97,7 +97,7 @@ def register(req: RegisterRequest):
             full_name=req.full_name,
             headline=req.headline or "NEXORA Student",
             role="student",
-            status="pending",
+            status="approved",
             rejection_reason="",
             education_level=req.education_level or "Undergraduate",
             institution=req.institution or "",
@@ -106,7 +106,7 @@ def register(req: RegisterRequest):
             onboarding_completed=False,
             is_demo=False
         )
-        return AuthResponse(token=user_id, user=user_data, onboarding_completed=False, status="pending")
+        return AuthResponse(token=user_id, user=user_data, onboarding_completed=False, status="approved")
 
 @router.post("/login", response_model=AuthResponse)
 def login(req: LoginRequest):
@@ -148,6 +148,43 @@ def login(req: LoginRequest):
             is_demo=False
         )
         return AuthResponse(token=user["id"], user=user_data, onboarding_completed=onboarding_done, status=user_status)
+
+@router.post("/admin-login", response_model=AuthResponse)
+def admin_login(req: LoginRequest):
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM learners WHERE email = ?", (req.email,))
+        user = cursor.fetchone()
+        if not user or not verify_password(req.password, user["password_hash"]):
+            raise HTTPException(status_code=401, detail="Invalid administrator credentials.")
+
+        user_role = user["role"] if "role" in user.keys() else "student"
+        if user_role != "admin":
+            raise HTTPException(status_code=403, detail="Access denied. Account does not have administrator privileges.")
+
+        if user["status"] == "suspended":
+            raise HTTPException(status_code=403, detail="Administrator account has been suspended.")
+
+        cursor.execute("SELECT onboarding_completed FROM profiles WHERE learner_id = ?", (user["id"],))
+        prof = cursor.fetchone()
+        onboarding_done = bool(prof["onboarding_completed"]) if prof and "onboarding_completed" in prof.keys() else True
+
+        user_data = UserResponse(
+            id=user["id"],
+            email=user["email"],
+            full_name=user["full_name"],
+            headline=user["headline"],
+            role="admin",
+            status="approved",
+            rejection_reason="",
+            education_level="",
+            institution="",
+            department="",
+            graduation_year="",
+            onboarding_completed=onboarding_done,
+            is_demo=False
+        )
+        return AuthResponse(token=user["id"], user=user_data, onboarding_completed=onboarding_done, status="approved")
 
 @router.get("/me", response_model=UserResponse)
 def get_current_user(user_id: str = Depends(get_current_user_id)):

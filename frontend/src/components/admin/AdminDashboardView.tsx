@@ -9,7 +9,11 @@ import {
   Award, 
   ArrowRight,
   ShieldAlert,
-  BarChart2
+  BarChart2,
+  Code2,
+  Clock,
+  Sparkles,
+  Building2
 } from 'lucide-react';
 import { AdminStats } from '../../types';
 import { Badge } from '../common/Badge';
@@ -40,17 +44,23 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
 
   const defaultStats: AdminStats = stats || {
     total_students: 0,
+    new_registrations_today: 0,
+    active_students: 0,
     pending_registrations: 0,
     approved_students: 0,
-    rejected_registrations: 0,
     suspended_students: 0,
     assessment_submissions: 0,
+    coding_submissions: 0,
+    project_submissions: 0,
     skill_gap_distribution: {},
-    registration_trends: []
+    registration_trends: [],
+    recent_registrations: []
   };
 
   const topGaps = Object.entries(defaultStats.skill_gap_distribution || {});
   const maxGapCount = Math.max(...topGaps.map(([_, count]) => count), 1);
+  const activeCount = defaultStats.active_students || defaultStats.approved_students || 0;
+  const practiceCount = (defaultStats.coding_submissions || 0) + (defaultStats.project_submissions || 0);
 
   return (
     <div className="space-y-8 animate-fadeIn">
@@ -59,26 +69,34 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
         <div>
           <div className="flex items-center gap-2 mb-1">
             <Badge variant="cyan" size="sm">ENTERPRISE ADMINISTRATION</Badge>
-            <span className="text-zinc-500 text-xs font-mono">NODE: REGION-1</span>
+            <span className="text-zinc-500 text-xs font-mono">NODE: REALTIME TELEMETRY</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
-            Institutional Oversight & Career Analytics
+            Institutional Oversight & Platform Intelligence
           </h1>
           <p className="text-xs text-[#929CA3] mt-1">
-            Monitor real-time student registration pipelines, skill gap clustering, and platform engagement.
+            Live telemetry monitoring student signups, skill gap clustering, assessment evaluations, and system activity.
           </p>
         </div>
 
-        {defaultStats.pending_registrations > 0 && (
+        <div className="flex items-center gap-2">
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => onNavigateTab('students')}
+            icon={<Users className="w-3.5 h-3.5" />}
+          >
+            Student Directory
+          </Button>
           <Button
             variant="primary"
             size="sm"
             onClick={() => onNavigateTab('registrations')}
             icon={<ArrowRight className="w-3.5 h-3.5" />}
           >
-            Review {defaultStats.pending_registrations} Pending Registrations
+            View Live Intake Feed
           </Button>
-        )}
+        </div>
       </div>
 
       {/* KPI Metrics Grid */}
@@ -93,40 +111,24 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
           <div className="text-[10px] text-zinc-500 mt-1 font-mono">Enrolled Roster</div>
         </div>
 
-        {/* Pending Approvals */}
-        <div className={`border rounded-2xl p-4 flex flex-col justify-between cursor-pointer transition-all ${
-          defaultStats.pending_registrations > 0 
-            ? 'bg-[#35D9F2]/5 border-[#35D9F2]/30 hover:border-[#35D9F2]' 
-            : 'bg-[#0B0F12] border-white/5'
-        }`}
-        onClick={() => onNavigateTab('registrations')}
-        >
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] font-mono uppercase tracking-wider text-amber-300">Pending</span>
-            <UserCheck className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
-          </div>
-          <div className="text-2xl font-bold text-amber-300 font-mono">{defaultStats.pending_registrations}</div>
-          <div className="text-[10px] text-amber-400/80 mt-1 font-mono">Awaiting Review →</div>
-        </div>
-
-        {/* Approved Active */}
+        {/* New Signups Today */}
         <div className="bg-[#0B0F12] border border-white/5 rounded-2xl p-4 flex flex-col justify-between">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] font-mono uppercase tracking-wider text-[#C5F45B]">Approved</span>
-            <CheckCircle2 className="w-3.5 h-3.5 text-[#C5F45B]" />
+            <span className="text-[10px] font-mono uppercase tracking-wider text-[#C5F45B]">Today's Intake</span>
+            <TrendingUp className="w-3.5 h-3.5 text-[#C5F45B]" />
           </div>
-          <div className="text-2xl font-bold text-[#C5F45B] font-mono">{defaultStats.approved_students}</div>
-          <div className="text-[10px] text-zinc-500 mt-1 font-mono">Active Learners</div>
+          <div className="text-2xl font-bold text-[#C5F45B] font-mono">{defaultStats.new_registrations_today || 0}</div>
+          <div className="text-[10px] text-zinc-500 mt-1 font-mono">New Signups</div>
         </div>
 
-        {/* Rejected Registrations */}
+        {/* Active Learners */}
         <div className="bg-[#0B0F12] border border-white/5 rounded-2xl p-4 flex flex-col justify-between">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] font-mono uppercase tracking-wider text-rose-400">Rejected</span>
-            <UserX className="w-3.5 h-3.5 text-rose-400" />
+            <span className="text-[10px] font-mono uppercase tracking-wider text-cyan-400">Active Learners</span>
+            <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400" />
           </div>
-          <div className="text-2xl font-bold text-rose-400 font-mono">{defaultStats.rejected_registrations}</div>
-          <div className="text-[10px] text-zinc-500 mt-1 font-mono">Audit Logged</div>
+          <div className="text-2xl font-bold text-cyan-300 font-mono">{activeCount}</div>
+          <div className="text-[10px] text-zinc-500 mt-1 font-mono">Immediate Access</div>
         </div>
 
         {/* Suspended Accounts */}
@@ -135,18 +137,28 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
             <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-400">Suspended</span>
             <AlertOctagon className="w-3.5 h-3.5 text-zinc-400" />
           </div>
-          <div className="text-2xl font-bold text-zinc-400 font-mono">{defaultStats.suspended_students}</div>
+          <div className="text-2xl font-bold text-zinc-400 font-mono">{defaultStats.suspended_students || 0}</div>
           <div className="text-[10px] text-zinc-500 mt-1 font-mono">Hold Status</div>
         </div>
 
         {/* Assessment Submissions */}
         <div className="bg-[#0B0F12] border border-white/5 rounded-2xl p-4 flex flex-col justify-between">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] font-mono uppercase tracking-wider text-cyan-400">Assessments</span>
-            <Award className="w-3.5 h-3.5 text-cyan-400" />
+            <span className="text-[10px] font-mono uppercase tracking-wider text-amber-300">Assessments</span>
+            <Award className="w-3.5 h-3.5 text-amber-300" />
           </div>
-          <div className="text-2xl font-bold text-cyan-300 font-mono">{defaultStats.assessment_submissions}</div>
-          <div className="text-[10px] text-zinc-500 mt-1 font-mono">Total Evaluations</div>
+          <div className="text-2xl font-bold text-amber-300 font-mono">{defaultStats.assessment_submissions}</div>
+          <div className="text-[10px] text-zinc-500 mt-1 font-mono">Evaluations Run</div>
+        </div>
+
+        {/* Practice Lab Submissions */}
+        <div className="bg-[#0B0F12] border border-white/5 rounded-2xl p-4 flex flex-col justify-between">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[10px] font-mono uppercase tracking-wider text-[#35D9F2]">Labs & Projects</span>
+            <Code2 className="w-3.5 h-3.5 text-[#35D9F2]" />
+          </div>
+          <div className="text-2xl font-bold text-[#35D9F2] font-mono">{practiceCount}</div>
+          <div className="text-[10px] text-zinc-500 mt-1 font-mono">Code Submissions</div>
         </div>
       </div>
 
@@ -156,8 +168,8 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
         <div className="bg-[#0B0F12] border border-white/5 rounded-2xl p-6">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-sm font-semibold text-white">Student Registration Intake</h2>
-              <p className="text-xs text-zinc-400 mt-0.5">Daily registered applicant velocity over the last 7 calendar days.</p>
+              <h2 className="text-sm font-semibold text-white">Student Registration Velocity</h2>
+              <p className="text-xs text-zinc-400 mt-0.5">Daily registered student volume across the 7-day intake window.</p>
             </div>
             <TrendingUp className="w-4 h-4 text-[#35D9F2]" />
           </div>
@@ -189,7 +201,7 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
                 })}
               </div>
               <div className="flex justify-between text-[10px] font-mono text-zinc-500 pt-1">
-                <span>Start: {defaultStats.registration_trends[0]?.date}</span>
+                <span>Earliest: {defaultStats.registration_trends[0]?.date}</span>
                 <span>Latest: {defaultStats.registration_trends[defaultStats.registration_trends.length - 1]?.date}</span>
               </div>
             </div>
@@ -232,6 +244,45 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
             </div>
           )}
         </div>
+      </div>
+
+      {/* Live Recent Registrations Feed */}
+      <div className="bg-[#0B0F12] border border-white/5 rounded-2xl p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-sm font-semibold text-white">Recent Student Registrations</h2>
+            <p className="text-xs text-zinc-400 mt-0.5">Live platform signup activity with instant active status.</p>
+          </div>
+          <button
+            onClick={() => onNavigateTab('registrations')}
+            className="text-xs font-mono text-[#35D9F2] hover:underline flex items-center gap-1"
+          >
+            <span>View Full Intake Feed</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+
+        {(!defaultStats.recent_registrations || defaultStats.recent_registrations.length === 0) ? (
+          <div className="py-8 text-center text-xs text-zinc-500 font-mono">
+            No recent registrations recorded.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {defaultStats.recent_registrations.map((st) => (
+              <div key={st.id} className="p-3.5 rounded-xl bg-[#080C0E] border border-white/5 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="font-medium text-white text-xs truncate max-w-[150px]">{st.full_name}</span>
+                  <Badge variant="lime" size="sm">ACTIVE</Badge>
+                </div>
+                <div className="text-[11px] font-mono text-zinc-500 truncate">{st.email}</div>
+                <div className="flex items-center justify-between pt-1 text-[10px] font-mono text-zinc-400 border-t border-white/5">
+                  <span className="truncate max-w-[140px] text-[#35D9F2]">{st.target_career_title || 'Software Engineer'}</span>
+                  <span>{new Date(st.created_at).toLocaleDateString()}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

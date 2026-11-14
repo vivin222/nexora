@@ -54,16 +54,36 @@ In the Render dashboard, set the following environment variables:
 
 ---
 
-## 4. Default Seed Credentials
+## 4. Student Registration & Admin Portal Access
 
-Upon first startup, the database auto-migrates and provisions the bootstrap institutional administrator:
+### Free Open Student Registration
+- **URL:** [http://localhost:5173/](http://localhost:5173/) $\rightarrow$ **Get Started Free** (or `/register`)
+- **Cost:** 100% Free forever. No payments, subscriptions, or credit card requirements.
+- **Activation:** Instantaneous upon form submission. Zero administrator approval, invitation, or manual verification required.
+- **Workflow:** Registration $\rightarrow$ Immediate active account $\rightarrow$ Onboarding Wizard (Resume extraction & goal calibration) $\rightarrow$ Student Workspace.
 
-- **Portal:** Institutional Admin Governance
-- **Email:** `admin@nexora.ai`
-- **Password:** `AdminPassword2026!`
-- **Role:** `admin` (Authorized for student admissions, status management, curriculum creation, and audit logging)
+### Dedicated Institutional Admin Portal
+- **Direct Route:** [http://localhost:5173/admin/login](http://localhost:5173/admin/login) or [http://localhost:5173/admin](http://localhost:5173/admin)
+- **Visible Link:** Click **Admin Login** in the top navigation bar or on the sign-in modal.
+- **Default Bootstrap Administrator:**
+  - **Email:** `admin@nexora.ai`
+  - **Password:** `AdminPassword2026!`
+  - **Role:** `admin` (enforced via backend RBAC at `/api/auth/admin-login` and `/api/admin/*`)
+- **Production Secure Admin Provisioning:**
+  To provision custom administrators in production without using default credentials:
+  1. Set environment variables `ADMIN_EMAIL` and `ADMIN_INITIAL_PASSWORD` before first startup.
+  2. Or run the admin CLI helper in production:
+     ```bash
+     python -c "from app.database import get_db; from app.services.security import hash_password; ... "
+     ```
+  3. Student accounts are strictly prohibited from accessing admin endpoints (enforced by `require_admin` dependency returning HTTP 403 Forbidden).
 
-Student accounts register via the public portal, enter their academic batch and campus credentials, and enter `pending` status until authorized by an administrator.
+### Admin Responsibilities
+Administrators oversee institutional health rather than gating student registrations:
+- **Intake & Metrics:** Live telemetry of total students, daily registration volume, active vs. suspended counts.
+- **Student Directory & Moderation:** Search/filter learners, view neural competency vectors, and suspend/reactivate accounts when justified.
+- **Curriculum Architecture:** Link open-access documentation and interactive labs into student roadmaps (100% free of course selling).
+- **Audit Logging:** Immutable audit ledger tracking all administrative actions with operator identities.
 
 ---
 

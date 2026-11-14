@@ -127,6 +127,24 @@ def run_database_expansion():
                 WHERE email = ?
             """, (hash_password(jury_pwd), jury_email))
 
+        # Ensure canonical benchmark student records exist for institutional oversight
+        benchmark_students = [
+            ("learner-alex-mercer", "alex.mercer@nexora.ai", "Alex Mercer", "Senior CS Undergraduate | Aspiring Full Stack Architect", "Undergraduate", "Stanford University", "Computer Science", "2026", "career-full-stack-developer"),
+            ("learner-sarah-chen", "sarah.chen@mit.edu", "Sarah Chen", "Graduate Researcher | Deep Learning & LLM Systems", "Postgraduate", "Massachusetts Institute of Technology", "Electrical Engineering & Computer Science", "2026", "career-ai-ml-engineer"),
+            ("learner-marcus-vance", "marcus.vance@berkeley.edu", "Marcus Vance", "Distributed Systems & Cloud Platform Engineer", "Undergraduate", "UC Berkeley", "Computer Science", "2025", "career-cloud-devops-architect")
+        ]
+        for sid, semail, sname, sheadline, sedu, sinst, sdept, sgrad, scid in benchmark_students:
+            cursor.execute("SELECT id FROM learners WHERE email = ?", (semail,))
+            if not cursor.fetchone():
+                cursor.execute("""
+                    INSERT INTO learners (id, email, password_hash, full_name, headline, role, status, education_level, institution, department, graduation_year, is_demo)
+                    VALUES (?, ?, ?, ?, ?, 'student', 'approved', ?, ?, ?, ?, 1)
+                """, (sid, semail, hash_password("Password123!"), sname, sheadline, sedu, sinst, sdept, sgrad))
+                cursor.execute("""
+                    INSERT OR IGNORE INTO profiles (id, learner_id, target_career_id, education, institution, department, academic_year, onboarding_completed)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, 1)
+                """, (str(uuid.uuid4()), sid, scid, sedu, sinst, sdept, sgrad))
+
         # 1. Learning Center: Courses
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS courses (

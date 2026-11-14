@@ -32,22 +32,22 @@ def get_admin_dashboard_stats(admin_id: str = Depends(require_admin)):
         cursor = conn.cursor()
 
         # Student counts by status
-        cursor.execute("SELECT COUNT(*) FROM learners WHERE role = 'student'")
+        cursor.execute("SELECT COUNT(*) FROM learners WHERE (role = 'student' OR role IS NULL OR role = '') AND role != 'admin' AND email NOT LIKE '%admin%'")
         total_students = cursor.fetchone()[0]
 
-        cursor.execute("SELECT COUNT(*) FROM learners WHERE role = 'student' AND DATE(created_at) = DATE('now')")
+        cursor.execute("SELECT COUNT(*) FROM learners WHERE (role = 'student' OR role IS NULL OR role = '') AND role != 'admin' AND email NOT LIKE '%admin%' AND DATE(created_at) = DATE('now')")
         new_registrations_today = cursor.fetchone()[0]
 
-        cursor.execute("SELECT COUNT(*) FROM learners WHERE role = 'student' AND status = 'pending'")
+        cursor.execute("SELECT COUNT(*) FROM learners WHERE (role = 'student' OR role IS NULL OR role = '') AND role != 'admin' AND email NOT LIKE '%admin%' AND status = 'pending'")
         pending_students = cursor.fetchone()[0]
 
-        cursor.execute("SELECT COUNT(*) FROM learners WHERE role = 'student' AND status = 'approved'")
+        cursor.execute("SELECT COUNT(*) FROM learners WHERE (role = 'student' OR role IS NULL OR role = '') AND role != 'admin' AND email NOT LIKE '%admin%' AND status = 'approved'")
         approved_students = cursor.fetchone()[0]
 
-        cursor.execute("SELECT COUNT(*) FROM learners WHERE role = 'student' AND status = 'rejected'")
+        cursor.execute("SELECT COUNT(*) FROM learners WHERE (role = 'student' OR role IS NULL OR role = '') AND role != 'admin' AND email NOT LIKE '%admin%' AND status = 'rejected'")
         rejected_students = cursor.fetchone()[0]
 
-        cursor.execute("SELECT COUNT(*) FROM learners WHERE role = 'student' AND status = 'suspended'")
+        cursor.execute("SELECT COUNT(*) FROM learners WHERE (role = 'student' OR role IS NULL OR role = '') AND role != 'admin' AND email NOT LIKE '%admin%' AND status = 'suspended'")
         suspended_students = cursor.fetchone()[0]
 
         # Assessment participation count
@@ -93,7 +93,7 @@ def get_admin_dashboard_stats(admin_id: str = Depends(require_admin)):
             FROM learners l
             LEFT JOIN profiles p ON l.id = p.learner_id
             LEFT JOIN career_roles cr ON p.target_career_id = cr.id
-            WHERE l.role = 'student'
+            WHERE (l.role = 'student' OR l.role IS NULL OR l.role = '') AND l.role != 'admin' AND l.email NOT LIKE '%admin%'
             ORDER BY l.created_at DESC
             LIMIT 6
         """)
@@ -133,7 +133,7 @@ def list_students(
             FROM learners l
             LEFT JOIN profiles p ON l.id = p.learner_id
             LEFT JOIN career_roles cr ON p.target_career_id = cr.id
-            WHERE l.role = 'student'
+            WHERE (l.role = 'student' OR l.role IS NULL OR l.role = '') AND l.role != 'admin' AND l.email NOT LIKE '%admin%'
         """
         params = []
 
@@ -215,21 +215,30 @@ def get_student_details(student_id: str, admin_id: str = Depends(require_admin))
         """, (student_id,))
         milestones = [dict(r) for r in cursor.fetchall()]
 
-        # Progress assessments
+        # Completed assessments
         cursor.execute("""
-            SELECT pr.*, a.title as assessment_title
-            FROM progress_records pr
-            LEFT JOIN assessments a ON pr.assessment_id = a.id
-            WHERE pr.learner_id = ?
-            ORDER BY pr.completed_at DESC
+            SELECT ar.*, a.title as assessment_title
+            FROM assessment_results ar
+            LEFT JOIN assessments a ON ar.assessment_id = a.id
+            WHERE ar.learner_id = ?
+            ORDER BY ar.created_at DESC
         """, (student_id,))
         assessments = [dict(r) for r in cursor.fetchall()]
+
+        # Activity timeline events
+        cursor.execute("""
+            SELECT * FROM activity_timeline
+            WHERE learner_id = ?
+            ORDER BY timestamp DESC LIMIT 20
+        """, (student_id,))
+        timeline = [dict(r) for r in cursor.fetchall()]
 
         return {
             "student": dict(student),
             "skills": skills,
             "milestones": milestones,
-            "assessments": assessments
+            "assessments": assessments,
+            "activity_timeline": timeline
         }
 
 @router.post("/students/{student_id}/approve")

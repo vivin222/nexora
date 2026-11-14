@@ -205,6 +205,13 @@ export function App() {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
+  // Synchronize freshest administrative data whenever navigating admin tabs
+  useEffect(() => {
+    if (currentView === 'admin') {
+      fetchAdminData();
+    }
+  }, [adminTab, currentView]);
+
   const handleAuthSuccess = async (authUser: UserResponse, onboardingCompleted: boolean) => {
     setUser(authUser);
     if (authUser.role === 'admin') {

@@ -83,7 +83,8 @@ def test_goals_and_achievements():
     assert ach_res.status_code == 200
     ach = ach_res.json()
     assert len(ach["achievements"]) >= 5
-    assert len(ach["certificates"]) >= 1
+    assert "certificates" in ach
+    assert "total_available" in ach
 
 def test_opportunities():
     opp_res = client.get("/api/opportunities")

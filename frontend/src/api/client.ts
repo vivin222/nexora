@@ -20,7 +20,10 @@ import {
   WeeklyGoals,
   Achievement,
   Certificate,
-  CareerOpportunity
+  CareerOpportunity,
+  UserResponse,
+  AuthResponse,
+  OnboardingSubmitPayload
 } from '../types';
 
 const API_BASE = '/api';
@@ -54,6 +57,36 @@ async function fetchJSON<T>(endpoint: string, options?: RequestInit): Promise<T>
 }
 
 export const api = {
+  // Authentication & Session
+  register: (email: string, password: string, full_name: string, headline?: string) =>
+    fetchJSON<AuthResponse>('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify({ email, password, full_name, headline }),
+    }),
+  login: (email: string, password: string) =>
+    fetchJSON<AuthResponse>('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    }),
+  getCurrentUser: () => fetchJSON<UserResponse>('/auth/me'),
+  forgotPassword: (email: string) =>
+    fetchJSON<{ status: string; message: string }>('/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    }),
+
+  // Onboarding & Profile Intelligence
+  submitOnboarding: (data: OnboardingSubmitPayload) =>
+    fetchJSON<{ status: string; message: string; profile: LearnerProfile; intelligence: any }>('/profile/onboarding', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  extractResume: (resume_text: string) =>
+    fetchJSON<{ status: string; data: any }>('/profile/extract-resume', {
+      method: 'POST',
+      body: JSON.stringify({ resume_text }),
+    }),
+
   // Health
   checkHealth: () => fetchJSON<{ status: string; service: string; version: string }>('/health'),
 

@@ -16,9 +16,35 @@ import uuid
 import json
 from app.database import get_db
 
+def _safe_add_column(cursor, table: str, column: str, col_type: str):
+    cursor.execute(f"PRAGMA table_info({table})")
+    cols = [row[1] for row in cursor.fetchall()]
+    if column not in cols:
+        cursor.execute(f"ALTER TABLE {table} ADD COLUMN {column} {col_type}")
+
 def run_database_expansion():
     with get_db() as conn:
         cursor = conn.cursor()
+
+        # 0. Migrate profiles and learners for Onboarding & Real User Identity
+        _safe_add_column(cursor, "profiles", "institution", "TEXT DEFAULT ''")
+        _safe_add_column(cursor, "profiles", "department", "TEXT DEFAULT ''")
+        _safe_add_column(cursor, "profiles", "academic_year", "TEXT DEFAULT ''")
+        _safe_add_column(cursor, "profiles", "github_url", "TEXT DEFAULT ''")
+        _safe_add_column(cursor, "profiles", "portfolio_url", "TEXT DEFAULT ''")
+        _safe_add_column(cursor, "profiles", "weekly_hours", "INTEGER DEFAULT 10")
+        _safe_add_column(cursor, "profiles", "learning_preferences", "TEXT DEFAULT '[]'")
+        _safe_add_column(cursor, "profiles", "short_term_goal", "TEXT DEFAULT ''")
+        _safe_add_column(cursor, "profiles", "long_term_goal", "TEXT DEFAULT ''")
+        _safe_add_column(cursor, "profiles", "onboarding_completed", "INTEGER DEFAULT 0")
+        _safe_add_column(cursor, "profiles", "resume_text", "TEXT DEFAULT ''")
+        _safe_add_column(cursor, "profiles", "resume_extracted_data", "TEXT DEFAULT '{}'")
+
+        _safe_add_column(cursor, "learners", "is_demo", "INTEGER DEFAULT 0")
+
+        # Mark demo learner explicitly
+        cursor.execute("UPDATE learners SET is_demo = 1 WHERE id = 'learner-alex-mercer'")
+        cursor.execute("UPDATE profiles SET onboarding_completed = 1 WHERE learner_id = 'learner-alex-mercer'")
 
         # 1. Learning Center: Courses
         cursor.execute("""

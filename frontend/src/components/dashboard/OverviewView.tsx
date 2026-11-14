@@ -46,6 +46,30 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
 
   return (
     <div className="space-y-8 animate-fadeIn">
+      {/* Personalized Learner Greeting Bar */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-white/8">
+        <div>
+          <div className="flex items-center gap-2">
+            <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+              Welcome back, {profile?.full_name || 'Learner'}
+            </h2>
+            <span className="w-2 h-2 rounded-full bg-[#C5F45B] animate-pulse" />
+          </div>
+          <p className="text-xs text-[#929CA3] mt-1 font-mono">
+            {profile?.department || profile?.education || 'Computer Science'}
+            {profile?.institution ? ` @ ${profile.institution}` : ''}
+            {profile?.academic_year ? ` • ${profile.academic_year}` : ''}
+            {profile?.weekly_hours ? ` • Target: ${profile.weekly_hours}h / week` : ''}
+          </p>
+        </div>
+        {profile?.short_term_goal && (
+          <div className="bg-[#11171B] border border-white/10 px-3.5 py-2 rounded-xl text-xs max-w-md">
+            <span className="text-[10px] font-mono text-[#35D9F2] uppercase block font-bold">Focus Milestone:</span>
+            <span className="text-zinc-300 line-clamp-1">{profile.short_term_goal}</span>
+          </div>
+        )}
+      </div>
+
       {/* Top Banner: Career Goal Intelligence */}
       <div className="bg-[#0B0F12] p-6 sm:p-8 rounded-2xl border border-white/10 relative overflow-hidden shadow-2xl">
         <div className="relative flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">

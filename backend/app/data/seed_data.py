@@ -291,61 +291,7 @@ def seed_database():
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, resources)
 
-        # Seed Default Learner: Alex Mercer (Matching prompt: Python, SQL, basic HTML, Target: Full Stack)
-        learner_id = "learner-alex-mercer"
-        cursor.execute("""
-            INSERT INTO learners (id, email, password_hash, full_name, headline)
-            VALUES (?, ?, ?, ?, ?)
-        """, (
-            learner_id,
-            "alex.mercer@nexora.ai",
-            "$2b$12$eX8mP.EXAMPLE.HASHED.PASSWORD.NEXORA",  # Simulated bcrypt hash
-            "Alex Mercer",
-            "Aspiring Full-Stack Software Engineer & Technology Enthusiast"
-        ))
-
-        cursor.execute("""
-            INSERT INTO profiles (id, learner_id, education, interests, target_career_id, bio, current_level, certifications, projects)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (
-            str(uuid.uuid4()),
-            learner_id,
-            "B.S. in Computer Science (Junior Year)",
-            json.dumps(["Distributed Systems", "Web Engineering", "Artificial Intelligence", "Cloud Architecture"]),
-            CAREER_FULLSTACK,
-            "Dedicated learner with solid backend scripting and data querying fundamentals seeking to master modern full-stack web engineering.",
-            "Intermediate",
-            json.dumps(["Python Certified Associate Programmer", "SQL Fundamentals Bootcamp"]),
-            json.dumps([
-                {"title": "CLI Automated Data Scraper", "tech": "Python, BeautifulSoup", "description": "Automated data harvesting pipeline with SQLite persistence."},
-                {"title": "Personal Portfolio v1", "tech": "HTML5, CSS3", "description": "Responsive static showcase site."}
-            ])
-        ))
-
-        # Seed learner's starting skills: Python: 75, SQL: 70, HTML5/CSS3: 40 (basic HTML)
-        cursor.execute("INSERT INTO learner_skills (id, learner_id, skill_id, proficiency, verified) VALUES (?, ?, ?, ?, ?)",
-                       (str(uuid.uuid4()), learner_id, SKILL_PYTHON, 75, 1))
-        cursor.execute("INSERT INTO learner_skills (id, learner_id, skill_id, proficiency, verified) VALUES (?, ?, ?, ?, ?)",
-                       (str(uuid.uuid4()), learner_id, SKILL_SQL, 70, 1))
-        cursor.execute("INSERT INTO learner_skills (id, learner_id, skill_id, proficiency, verified) VALUES (?, ?, ?, ?, ?)",
-                       (str(uuid.uuid4()), learner_id, SKILL_HTML_CSS, 40, 0))
-
-        # Initial Agent Execution Log
-        cursor.execute("""
-            INSERT INTO agent_logs (id, learner_id, agent_name, action, input_summary, output_summary, execution_time_ms, status)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        """, (
-            str(uuid.uuid4()),
-            learner_id,
-            "ProfileAgent",
-            "INGEST_LEARNER_BASELINE",
-            "Ingested initial skills: Python (75%), SQL (70%), HTML/CSS (40%). Goal: Full Stack Developer",
-            "Identified baseline profile strengths in backend data manipulation; flagged JavaScript and React gaps.",
-            48,
-            "SUCCESS"
-        ))
-
-        print("NEXORA seed data created successfully!")
+        print("NEXORA master seed data created successfully (platform catalogs, skills, careers, learning resources, and assessment templates ready for real user accounts)!")
 
 if __name__ == "__main__":
     from app.database import init_db

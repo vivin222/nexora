@@ -319,14 +319,7 @@ console.log("4: Synchronous end");
             VALUES (?, ?, ?, ?, ?, ?)
         """, interview_qs)
 
-        # 5. WEEKLY GOALS BASELINE FOR ALEX MERCER
-        cursor.execute("""
-            INSERT INTO weekly_goals (id, learner_id, target_hours, target_lessons, target_assessments, completed_hours, completed_lessons, completed_assessments, week_start_date, streak_days)
-            VALUES (?, 'learner-alex-mercer', 12.0, 6, 2, 8.5, 4, 1, '2026-11-10', 4)
-            ON CONFLICT(learner_id, week_start_date) DO NOTHING
-        """, (str(uuid.uuid4()),))
-
-        # 6. ACHIEVEMENTS & CERTIFICATES
+        # 6. MASTER ACHIEVEMENTS CATALOG
         achievements = [
             ("ach-first-quiz", "first-assessment-passed", "Diagnostic Pioneer", "Successfully verified your first technical skill assessment with >70% score.", "Award", "Assessments", "assessment_count", 1),
             ("ach-roadmap-pioneer", "roadmap-pioneer", "Pathfinder", "Completed your first personalized milestone on your adaptive career roadmap.", "Compass", "Roadmap", "milestone_count", 1),
@@ -335,22 +328,9 @@ console.log("4: Synchronous end");
             ("ach-code-lab-champ", "code-lab-solver", "Syntax Virtuoso", "Passed all unit test suites on a practical coding challenge in the Coding Lab.", "Terminal", "Coding", "code_problems_solved", 1)
         ]
         cursor.executemany("""
-            INSERT INTO achievements (id, slug, title, description, badge_icon, category, criteria_type, threshold_val)
+            INSERT OR IGNORE INTO achievements (id, slug, title, description, badge_icon, category, criteria_type, threshold_val)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """, achievements)
-
-        # Unlock initial achievements for Alex Mercer
-        cursor.execute("""
-            INSERT INTO learner_achievements (id, learner_id, achievement_id)
-            VALUES (?, 'learner-alex-mercer', 'ach-first-quiz'), (?, 'learner-alex-mercer', 'ach-roadmap-pioneer')
-            ON CONFLICT(learner_id, achievement_id) DO NOTHING
-        """, (str(uuid.uuid4()), str(uuid.uuid4())))
-
-        # Seed Verified Certificate for Alex Mercer
-        cursor.execute("""
-            INSERT INTO certificates (id, learner_id, title, certificate_code, credential_url, criteria_description)
-            VALUES (?, 'learner-alex-mercer', 'Python & Relational Data Engineering Foundations', 'NEXORA-CERT-PYSQL-2026', 'https://nexora.ai/credentials/NEXORA-CERT-PYSQL-2026', 'Verified 75% Python proficiency and 70% SQL schema optimization benchmarks under NEXORA autonomous evaluation protocol.')
-        """, (str(uuid.uuid4()),))
 
         # 7. CAREER OPPORTUNITIES (Demo Market Catalog)
         opportunities = [

@@ -1,14 +1,24 @@
 import React from 'react';
-import { ArrowRight, LayoutDashboard, Cpu, ShieldCheck } from 'lucide-react';
+import { ArrowRight, LayoutDashboard, Cpu, ShieldCheck, LogOut, Sparkles } from 'lucide-react';
 import { Button } from './common/Button';
+import { UserResponse } from '../types';
 
 interface NavbarProps {
-  currentView: 'landing' | 'dashboard';
-  onNavigate: (view: 'landing' | 'dashboard') => void;
+  currentView: 'landing' | 'onboarding' | 'dashboard';
+  onNavigate: (view: 'landing' | 'onboarding' | 'dashboard') => void;
   onOpenSection?: (sectionId: string) => void;
+  user: UserResponse | null;
+  onOpenAuth: (mode?: 'login' | 'register') => void;
+  onSignOut: () => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ currentView, onNavigate }) => {
+export const Navbar: React.FC<NavbarProps> = ({ 
+  currentView, 
+  onNavigate, 
+  user,
+  onOpenAuth,
+  onSignOut
+}) => {
   const handleScrollTo = (id: string) => {
     if (currentView !== 'landing') {
       onNavigate('landing');
@@ -97,34 +107,72 @@ export const Navbar: React.FC<NavbarProps> = ({ currentView, onNavigate }) => {
           </div>
         )}
 
-        {/* Header Action Button */}
+        {/* Header Action Button / Auth States */}
         <div className="flex items-center gap-3">
-          {currentView === 'landing' ? (
+          {!user ? (
             <div className="flex items-center gap-3">
               <button
-                onClick={() => onNavigate('dashboard')}
+                onClick={() => onOpenAuth('login')}
                 className="text-xs text-[#929CA3] hover:text-white font-medium transition-colors cursor-pointer"
               >
                 Sign In
               </button>
               <Button
-                onClick={() => onNavigate('dashboard')}
+                onClick={() => onOpenAuth('register')}
                 variant="primary"
                 size="md"
-                icon={<LayoutDashboard className="w-4 h-4" />}
+                icon={<Sparkles className="w-4 h-4" />}
               >
-                Launch Workspace
+                Get Started
                 <ArrowRight className="w-3.5 h-3.5 ml-1" />
               </Button>
             </div>
           ) : (
-            <Button
-              onClick={() => onNavigate('landing')}
-              variant="secondary"
-              size="sm"
-            >
-              Back to Overview
-            </Button>
+            <div className="flex items-center gap-3">
+              {currentView !== 'dashboard' && (
+                <Button
+                  onClick={() => onNavigate('dashboard')}
+                  variant="primary"
+                  size="sm"
+                  icon={<LayoutDashboard className="w-4 h-4" />}
+                >
+                  Open Workspace
+                </Button>
+              )}
+              {currentView === 'dashboard' && (
+                <Button
+                  onClick={() => onNavigate('landing')}
+                  variant="secondary"
+                  size="sm"
+                >
+                  Overview
+                </Button>
+              )}
+
+              {/* User Pill */}
+              <div className="flex items-center gap-2 pl-2 border-l border-white/10">
+                <div className="w-8 h-8 rounded-full bg-[#11171B] border border-white/15 flex items-center justify-center font-mono text-xs font-bold text-[#35D9F2]">
+                  {user.full_name ? user.full_name.charAt(0).toUpperCase() : 'U'}
+                </div>
+                <div className="hidden lg:flex flex-col text-left">
+                  <span className="text-xs font-semibold text-white leading-tight">
+                    {user.full_name || 'Learner'}
+                  </span>
+                  <span className="text-[10px] font-mono text-zinc-400">
+                    Verified Profile
+                  </span>
+                </div>
+              </div>
+
+              {/* Sign Out Button */}
+              <button
+                onClick={onSignOut}
+                title="Sign Out"
+                className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            </div>
           )}
         </div>
       </div>

@@ -141,14 +141,63 @@ export interface LearnerProfile {
   email: string;
   headline: string;
   education: string;
+  institution?: string;
+  department?: string;
+  academic_year?: string;
   bio: string;
   target_career_id: string;
   current_level: string;
+  github_url?: string;
+  portfolio_url?: string;
+  weekly_hours?: number;
+  learning_preferences?: string[];
+  short_term_goal?: string;
+  long_term_goal?: string;
+  onboarding_completed?: boolean;
+  is_demo?: boolean;
   interests: string[];
   certifications: string[];
   projects: Array<{ title: string; tech: string; description: string }>;
   skills: LearnerSkill[];
   skill_map: Record<string, number>;
+}
+
+export interface UserResponse {
+  id: string;
+  email: string;
+  full_name: string;
+  headline: string;
+  onboarding_completed: boolean;
+  is_demo: boolean;
+}
+
+export interface AuthResponse {
+  token: string;
+  user: UserResponse;
+  onboarding_completed: boolean;
+}
+
+export interface OnboardingSubmitPayload {
+  full_name: string;
+  headline?: string;
+  education_level: string;
+  institution: string;
+  department: string;
+  academic_year: string;
+  target_career_id: string;
+  career_interests: string[];
+  short_term_goal: string;
+  long_term_goal: string;
+  weekly_hours: number;
+  learning_preferences: string[];
+  skills: Array<{ skill_id: string; proficiency: number }>;
+  frameworks_and_tools: string[];
+  certifications: string[];
+  projects: Array<{ title: string; tech: string; description: string }>;
+  github_url: string;
+  portfolio_url: string;
+  resume_text?: string;
+  resume_extracted_data?: any;
 }
 
 export interface AgentLog {

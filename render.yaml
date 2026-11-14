@@ -13,24 +13,16 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.9
-      - key: GEMINI_API_KEY
-        sync: false
       - key: ENVIRONMENT
         value: production
       - key: FRONTEND_URL
         value: https://nexora-web-9bi2.onrender.com
       - key: SECRET_KEY
-        sync: false
-      - key: GOOGLE_CLIENT_ID
-        sync: false
-      - key: GITHUB_CLIENT_ID
-        sync: false
-      - key: GITHUB_CLIENT_SECRET
-        sync: false
+        generateValue: true
       - key: JURY_ADMIN_EMAIL
         value: jury-admin@nexora.ai
       - key: JURY_ADMIN_PASSWORD
-        sync: false
+        value: NexoraJury2026!Evaluator
 
   # NEXORA React Frontend Static Site
   - type: web
@@ -48,7 +40,3 @@ services:
     envVars:
       - key: VITE_API_URL
         value: https://nexora-omw4.onrender.com
-      - key: VITE_GOOGLE_CLIENT_ID
-        sync: false
-      - key: VITE_GITHUB_CLIENT_ID
-        sync: false

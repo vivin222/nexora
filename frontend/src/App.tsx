@@ -1,122 +1,152 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import React, { useState, useEffect } from 'react';
+import { Navbar } from './components/Navbar';
+import { Footer } from './components/Footer';
+import { HeroSection } from './components/landing/HeroSection';
+import { PlatformShowcase } from './components/landing/PlatformShowcase';
+import { HowItWorks } from './components/landing/HowItWorks';
+import { AgentEcosystem } from './components/landing/AgentEcosystem';
+import { ComparisonSection } from './components/landing/ComparisonSection';
+import { CtaBanner } from './components/landing/CtaBanner';
 
-function App() {
-  const [count, setCount] = useState(0)
+import { DashboardLayout, DashboardTab } from './components/dashboard/DashboardLayout';
+import { OverviewView } from './components/dashboard/OverviewView';
+import { SkillProfileView } from './components/dashboard/SkillProfileView';
+import { CareerIntelligenceView } from './components/dashboard/CareerIntelligenceView';
+import { RoadmapView } from './components/dashboard/RoadmapView';
+import { AssessmentView } from './components/dashboard/AssessmentView';
+import { MentorView } from './components/dashboard/MentorView';
+import { AgentTelemetryView } from './components/dashboard/AgentTelemetryView';
+import { SettingsView } from './components/dashboard/SettingsView';
+
+import { api } from './api/client';
+import { LearnerProfile, ProgressOverview } from './types';
+
+export function App() {
+  const [currentView, setCurrentView] = useState<'landing' | 'dashboard'>('landing');
+  const [currentTab, setCurrentTab] = useState<DashboardTab>('overview');
+  
+  const [profile, setProfile] = useState<LearnerProfile | null>(null);
+  const [progress, setProgress] = useState<ProgressOverview | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  const fetchGlobalData = async () => {
+    try {
+      const [profData, progData] = await Promise.all([
+        api.getProfile(),
+        api.getProgressOverview()
+      ]);
+      setProfile(profData);
+      setProgress(progData);
+    } catch (err) {
+      console.error('Error fetching global application data:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchGlobalData();
+  }, []);
+
+  const handleLaunchDashboard = () => {
+    setCurrentView('dashboard');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleExplorePlatform = () => {
+    const el = document.getElementById('platform-showcase');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
+    <div className="min-h-screen bg-[#050507] text-white flex flex-col selection:bg-rose-600 selection:text-white">
+      {/* Top Universal Navbar */}
+      <Navbar
+        currentView={currentView}
+        onNavigate={setCurrentView}
+      />
+
+      {/* Main View Router */}
+      {currentView === 'landing' ? (
+        <div className="flex-1 flex flex-col">
+          <HeroSection 
+            onStart={handleLaunchDashboard} 
+            onExplore={handleExplorePlatform} 
+          />
+          <PlatformShowcase onLaunch={handleLaunchDashboard} />
+          <HowItWorks />
+          <AgentEcosystem />
+          <ComparisonSection />
+          <CtaBanner onStart={handleLaunchDashboard} />
         </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
+      ) : (
+        <DashboardLayout
+          currentTab={currentTab}
+          onTabChange={setCurrentTab}
+          profile={profile}
+          progress={progress}
         >
-          Count is {count}
-        </button>
-      </section>
+          {currentTab === 'overview' && (
+            <OverviewView
+              progress={progress}
+              profile={profile}
+              onNavigateTab={setCurrentTab}
+            />
+          )}
 
-      <div className="ticks"></div>
+          {currentTab === 'skills' && (
+            <SkillProfileView 
+              onRefreshProgress={fetchGlobalData} 
+            />
+          )}
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+          {currentTab === 'careers' && (
+            <CareerIntelligenceView
+              currentCareerId={profile?.target_career_id}
+              onRefreshAll={fetchGlobalData}
+            />
+          )}
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+          {currentTab === 'roadmap' && (
+            <RoadmapView 
+              onRefreshAll={fetchGlobalData} 
+            />
+          )}
+
+          {currentTab === 'assessments' && (
+            <AssessmentView
+              onRefreshAll={fetchGlobalData}
+              onNavigateTab={setCurrentTab}
+            />
+          )}
+
+          {currentTab === 'mentor' && (
+            <MentorView 
+              progress={progress} 
+            />
+          )}
+
+          {currentTab === 'agents' && (
+            <AgentTelemetryView 
+              onRefreshAll={fetchGlobalData} 
+            />
+          )}
+
+          {currentTab === 'settings' && (
+            <SettingsView
+              profile={profile}
+              onRefreshAll={fetchGlobalData}
+            />
+          )}
+        </DashboardLayout>
+      )}
+
+      {/* Universal Footer */}
+      <Footer />
+    </div>
+  );
 }
 
-export default App
+export default App;

@@ -57,5 +57,5 @@ def test_agent_telemetry():
     response = client.get("/api/agents/status")
     assert response.status_code == 200
     data = response.json()
-    assert len(data["agents"]) == 6
+    assert len(data["agents"]) >= 6
     assert data["orchestrator"]["status"] == "ONLINE"

@@ -1,6 +1,6 @@
 """
 NEXORA Central Agent Orchestrator.
-Coordinates specialized agents, enforces structured data pipelines,
+Coordinates the 10 specialized agents, enforces structured data pipelines,
 records telemetry, and guarantees deterministic consistency across learning cycles.
 """
 import time
@@ -13,6 +13,10 @@ from app.services.agents.career_agent import CareerIntelligenceAgent
 from app.services.agents.roadmap_agent import RoadmapAgent
 from app.services.agents.resource_agent import ResourceAgent
 from app.services.agents.assessment_agent import AssessmentAgent
+from app.services.agents.learning_agent import LearningAgent
+from app.services.agents.tutor_agent import TutorAgent
+from app.services.agents.interview_agent import InterviewAgent
+from app.services.agents.resume_agent import ResumeAgent
 
 class AgentOrchestrator:
     def __init__(self):
@@ -22,6 +26,10 @@ class AgentOrchestrator:
         self.roadmap_agent = RoadmapAgent()
         self.resource_agent = ResourceAgent()
         self.assessment_agent = AssessmentAgent()
+        self.learning_agent = LearningAgent()
+        self.tutor_agent = TutorAgent()
+        self.interview_agent = InterviewAgent()
+        self.resume_agent = ResumeAgent()
 
     def _log_agent_action(
         self,
@@ -51,13 +59,7 @@ class AgentOrchestrator:
 
     def run_full_intelligence_cycle(self, learner_id: str, career_id: Optional[str] = None) -> Dict[str, Any]:
         """
-        Executes end-to-end multi-agent evaluation cycle:
-        1. ProfileAgent extracts profile & skill map
-        2. SkillAnalysisAgent calculates gaps & scores
-        3. CareerIntelligenceAgent assesses market alignment
-        4. ResourceAgent curates prioritized learning resources
-        5. RoadmapAgent updates/preserves roadmap milestones
-        6. Logs execution telemetry
+        Executes end-to-end multi-agent evaluation cycle across DAG topology.
         """
         cycle_start = time.time()
 
@@ -123,7 +125,21 @@ class AgentOrchestrator:
             t_res
         )
 
-        # Step 5: Roadmap Agent
+        # Step 5: Learning Agent (Course alignment)
+        t0 = time.time()
+        courses = self.learning_agent.recommend_courses(learner_id, skill_analysis["detailed_gaps"])
+        t_learn = int((time.time() - t0) * 1000)
+
+        self._log_agent_action(
+            learner_id,
+            "LearningAgent",
+            "RECOMMEND_STRUCTURED_CURRICULUM",
+            f"Matched {len(courses.get('high_priority_courses', []))} courses directly with skill gaps.",
+            f"Prioritized courses targeting critical deficits.",
+            t_learn
+        )
+
+        # Step 6: Roadmap Agent
         t0 = time.time()
         roadmap = self.roadmap_agent.generate_or_update(
             learner_id,
@@ -159,7 +175,8 @@ class AgentOrchestrator:
             "career_intelligence": career_intel,
             "skill_analysis": skill_analysis,
             "roadmap": roadmap,
-            "resource_recommendations": resources
+            "resource_recommendations": resources,
+            "course_recommendations": courses
         }
 
     def process_assessment_submission(
@@ -169,14 +186,8 @@ class AgentOrchestrator:
         answers: Dict[str, int]
     ) -> Dict[str, Any]:
         """
-        Adaptive cycle triggered upon completing an assessment:
-        1. AssessmentAgent scores test and updates verified skill level
-        2. SkillAnalysisAgent updates gap analysis with new evidence
-        3. CareerIntelligenceAgent recalculates readiness score
-        4. RoadmapAgent adapts roadmap priorities
-        5. ResourceAgent targets remaining weaknesses
+        Adaptive cycle triggered upon completing an assessment.
         """
-        # Step 1: Evaluate assessment
         t0 = time.time()
         assessment_result = self.assessment_agent.evaluate_submission(learner_id, assessment_id, answers)
         t_asmt = int((time.time() - t0) * 1000)

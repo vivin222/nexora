@@ -204,3 +204,189 @@ export interface ProgressOverview {
     created_at: string;
   }>;
 }
+
+// Expanded Feature Interfaces
+export interface CourseLesson {
+  id: string;
+  module_id: string;
+  course_id: string;
+  order_index: number;
+  title: string;
+  content_markdown: string;
+  code_snippet?: string;
+  key_takeaways?: string[];
+  quiz_question?: {
+    question?: string;
+    options?: string[];
+    correct_index?: number;
+    explanation?: string;
+  };
+  estimated_minutes: number;
+  completed?: boolean;
+  bookmarked?: boolean;
+}
+
+export interface CourseModule {
+  id: string;
+  course_id: string;
+  order_index: number;
+  title: string;
+  description: string;
+  lessons: CourseLesson[];
+}
+
+export interface Course {
+  id: string;
+  slug: string;
+  title: string;
+  category: string;
+  skill_id: string;
+  skill_name?: string;
+  difficulty_level: string;
+  estimated_hours: number;
+  description: string;
+  thumbnail_icon: string;
+  lesson_count?: number;
+  completed_lessons?: number;
+  progress_percentage?: number;
+  modules?: CourseModule[];
+}
+
+export interface CodingProblem {
+  id: string;
+  slug: string;
+  title: string;
+  skill_id: string;
+  skill_name?: string;
+  difficulty: string;
+  description: string;
+  language: string;
+  initial_code: string;
+  test_cases?: Array<{
+    input: string;
+    expected_output: string;
+    description: string;
+  }>;
+  hints?: string[];
+}
+
+export interface CodingSubmissionResult {
+  submission_id: string;
+  status: string;
+  passed_tests: number;
+  total_tests: number;
+  feedback: string;
+}
+
+export interface ProjectMilestone {
+  id: string;
+  project_id: string;
+  order_index: number;
+  title: string;
+  objective: string;
+  deliverable: string;
+}
+
+export interface Project {
+  id: string;
+  slug: string;
+  title: string;
+  target_career_id: string;
+  career_title?: string;
+  difficulty: string;
+  description: string;
+  architecture_markdown: string;
+  required_skills: string[];
+  deliverables: string[];
+  milestones?: ProjectMilestone[];
+  submission?: {
+    id: string;
+    github_url: string;
+    live_demo_url: string;
+    reflection_notes: string;
+    status: string;
+    grade_feedback: string;
+    created_at: string;
+  } | null;
+}
+
+export interface InterviewQuestion {
+  id: string;
+  career_id: string;
+  category: string;
+  difficulty: string;
+  question_text: string;
+  criteria_notes: string;
+}
+
+export interface InterviewEvaluationResult {
+  answer_id: string;
+  score: number;
+  ai_feedback: string;
+  strengths: string[];
+  improvements: string[];
+}
+
+export interface ResumeAnalysis {
+  has_analysis?: boolean;
+  analysis_id?: string;
+  career_id?: string;
+  filename?: string;
+  match_percentage: number;
+  detected_skills: string[];
+  missing_skills: string[];
+  actionable_feedback: string[];
+  summary?: string;
+  created_at?: string;
+}
+
+export interface WeeklyGoals {
+  id: string;
+  learner_id: string;
+  target_hours: number;
+  target_lessons: number;
+  target_assessments: number;
+  completed_hours: number;
+  completed_lessons: number;
+  completed_assessments: number;
+  week_start_date: string;
+  streak_days: number;
+  overall_progress: number;
+}
+
+export interface Achievement {
+  id: string;
+  slug: string;
+  title: string;
+  description: string;
+  badge_icon: string;
+  category: string;
+  threshold_val: number;
+  unlocked: number;
+  unlocked_at?: string;
+}
+
+export interface Certificate {
+  id: string;
+  learner_id: string;
+  title: string;
+  issue_date: string;
+  certificate_code: string;
+  credential_url: string;
+  criteria_description: string;
+}
+
+export interface CareerOpportunity {
+  id: string;
+  career_id: string;
+  career_title?: string;
+  company_name: string;
+  role_title: string;
+  location: string;
+  role_type: string;
+  salary_range: string;
+  required_skills: string[];
+  description: string;
+  match_score?: number;
+  is_demo?: number;
+}

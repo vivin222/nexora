@@ -4,8 +4,13 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.database import init_db
+from app.database_expansion import run_database_expansion
 from app.data.seed_data import seed_database
-from app.routers import auth, profile, careers, skills, assessments, roadmap, progress, mentor, agents
+from app.data.seed_expansion import seed_expanded_features
+from app.routers import (
+    auth, profile, careers, skills, assessments, roadmap, progress, mentor, agents,
+    learning, coding_lab, project_studio, interview, resume, goals, achievements, opportunities
+)
 
 # Configure structured logging
 logging.basicConfig(
@@ -18,8 +23,10 @@ logger = logging.getLogger("nexora")
 async def lifespan(app: FastAPI):
     logger.info("Initializing NEXORA Database and Seeding Knowledge Graph...")
     init_db()
+    run_database_expansion()
     seed_database()
-    logger.info("NEXORA Intelligence Platform ready.")
+    seed_expanded_features()
+    logger.info("NEXORA Full Intelligence Platform Ready.")
     yield
     logger.info("NEXORA Backend shutdown.")
 
@@ -49,6 +56,16 @@ app.include_router(roadmap.router, prefix="/api")
 app.include_router(progress.router, prefix="/api")
 app.include_router(mentor.router, prefix="/api")
 app.include_router(agents.router, prefix="/api")
+
+# Mount Expanded Feature Routers under /api
+app.include_router(learning.router, prefix="/api")
+app.include_router(coding_lab.router, prefix="/api")
+app.include_router(project_studio.router, prefix="/api")
+app.include_router(interview.router, prefix="/api")
+app.include_router(resume.router, prefix="/api")
+app.include_router(goals.router, prefix="/api")
+app.include_router(achievements.router, prefix="/api")
+app.include_router(opportunities.router, prefix="/api")
 
 @app.get("/api/health", tags=["System"])
 def health_check():

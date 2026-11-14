@@ -12,9 +12,16 @@ import { DashboardLayout, DashboardTab } from './components/dashboard/DashboardL
 import { OverviewView } from './components/dashboard/OverviewView';
 import { SkillProfileView } from './components/dashboard/SkillProfileView';
 import { CareerIntelligenceView } from './components/dashboard/CareerIntelligenceView';
+import { LearningCenterView } from './components/dashboard/LearningCenterView';
 import { RoadmapView } from './components/dashboard/RoadmapView';
 import { AssessmentView } from './components/dashboard/AssessmentView';
+import { CodingLabView } from './components/dashboard/CodingLabView';
+import { ProjectStudioView } from './components/dashboard/ProjectStudioView';
+import { InterviewSimulatorView } from './components/dashboard/InterviewSimulatorView';
+import { ResumeAnalyzerView } from './components/dashboard/ResumeAnalyzerView';
 import { MentorView } from './components/dashboard/MentorView';
+import { AchievementsView } from './components/dashboard/AchievementsView';
+import { AnalyticsView } from './components/dashboard/AnalyticsView';
 import { AgentTelemetryView } from './components/dashboard/AgentTelemetryView';
 import { SettingsView } from './components/dashboard/SettingsView';
 
@@ -61,7 +68,7 @@ export function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#050507] text-white flex flex-col selection:bg-rose-600 selection:text-white">
+    <div className="min-h-screen bg-[#050608] text-[#F5F7F4] flex flex-col selection:bg-[#35D9F2] selection:text-[#050608]">
       {/* Top Universal Navbar */}
       <Navbar
         currentView={currentView}
@@ -109,6 +116,10 @@ export function App() {
             />
           )}
 
+          {currentTab === 'learning' && (
+            <LearningCenterView />
+          )}
+
           {currentTab === 'roadmap' && (
             <RoadmapView 
               onRefreshAll={fetchGlobalData} 
@@ -122,9 +133,35 @@ export function App() {
             />
           )}
 
+          {currentTab === 'coding-lab' && (
+            <CodingLabView />
+          )}
+
+          {currentTab === 'project-studio' && (
+            <ProjectStudioView />
+          )}
+
+          {currentTab === 'interview-sim' && (
+            <InterviewSimulatorView />
+          )}
+
+          {currentTab === 'resume-analyzer' && (
+            <ResumeAnalyzerView />
+          )}
+
           {currentTab === 'mentor' && (
             <MentorView 
               progress={progress} 
+            />
+          )}
+
+          {currentTab === 'achievements' && (
+            <AchievementsView />
+          )}
+
+          {currentTab === 'analytics' && (
+            <AnalyticsView 
+              progress={progress}
             />
           )}
 

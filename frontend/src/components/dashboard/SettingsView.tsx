@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import { LearnerProfile } from '../../types';
 import { api } from '../../api/client';
-import { CrimsonButton } from '../common/CrimsonButton';
+import { Button } from '../common/Button';
 import { Badge } from '../common/Badge';
 
 interface SettingsViewProps {
@@ -64,27 +64,27 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ profile, onRefreshAl
 
   return (
     <div className="space-y-8 animate-fadeIn max-w-4xl mx-auto">
-      <div>
-        <div className="flex items-center gap-2 mb-1">
-          <Badge variant="crimson" size="sm">LEARNER IDENTITY</Badge>
-          <span className="text-xs font-mono text-zinc-500">Profile Agent Synchronized</span>
+      <div className="pb-6 border-b border-white/8">
+        <div className="flex items-center gap-2 mb-1.5">
+          <Badge variant="cyan" size="sm">LEARNER IDENTITY</Badge>
+          <span className="text-xs font-mono text-zinc-500">• Profile Agent Synchronized</span>
         </div>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
           Learner Profile & Academic Background
         </h1>
-        <p className="text-sm text-zinc-400 mt-1">
-          Your profile provides the baseline context for all 6 autonomous agents. Keep your education, interests, and projects updated.
+        <p className="text-sm text-[#929CA3] mt-1">
+          Your profile provides the baseline context for all 10 autonomous agents. Keep your education, interests, and projects updated.
         </p>
       </div>
 
       {statusMsg && (
-        <div className="p-4 rounded-xl bg-zinc-900 border border-rose-500/30 text-xs font-mono text-rose-300 flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-rose-400" />
+        <div className="p-4 rounded-xl bg-[#11171B] border border-[#35D9F2]/30 text-xs font-mono text-[#35D9F2] flex items-center gap-2 shadow-lg">
+          <Sparkles className="w-4 h-4 text-[#35D9F2]" />
           <span>{statusMsg}</span>
         </div>
       )}
 
-      <form onSubmit={handleSave} className="glass-panel p-6 sm:p-8 rounded-2xl border border-white/8 space-y-6">
+      <form onSubmit={handleSave} className="bg-[#0B0F12] p-6 sm:p-8 rounded-2xl border border-white/8 space-y-6 shadow-2xl">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <div className="space-y-2">
             <label className="text-xs font-mono uppercase text-zinc-400">Full Name</label>
@@ -93,7 +93,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ profile, onRefreshAl
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               required
-              className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-rose-500"
+              className="w-full bg-[#11171B] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#35D9F2]"
             />
           </div>
 
@@ -103,7 +103,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ profile, onRefreshAl
               type="text"
               value={headline}
               onChange={(e) => setHeadline(e.target.value)}
-              className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-rose-500"
+              className="w-full bg-[#11171B] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#35D9F2]"
             />
           </div>
         </div>
@@ -115,7 +115,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ profile, onRefreshAl
             value={education}
             onChange={(e) => setEducation(e.target.value)}
             placeholder="e.g. B.S. in Computer Science (Junior Year)"
-            className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-rose-500"
+            className="w-full bg-[#11171B] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#35D9F2]"
           />
         </div>
 
@@ -126,7 +126,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ profile, onRefreshAl
             value={interestsText}
             onChange={(e) => setInterestsText(e.target.value)}
             placeholder="e.g. Distributed Systems, Web Engineering, Machine Learning, Cloud Architecture"
-            className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-rose-500"
+            className="w-full bg-[#11171B] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#35D9F2]"
           />
         </div>
 
@@ -137,7 +137,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ profile, onRefreshAl
             value={bio}
             onChange={(e) => setBio(e.target.value)}
             placeholder="Summarize your engineering background, project motivations, and learning objectives..."
-            className="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-4 text-sm text-white focus:outline-none focus:border-rose-500 leading-relaxed"
+            className="w-full bg-[#11171B] border border-white/10 rounded-xl p-4 text-sm text-white focus:outline-none focus:border-[#35D9F2] leading-relaxed"
           />
         </div>
 
@@ -147,12 +147,12 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ profile, onRefreshAl
             <div className="text-xs font-mono uppercase text-zinc-400 mb-3">Portfolio Projects Evaluated by Profile Agent:</div>
             <div className="space-y-2">
               {profile.projects.map((proj, idx) => (
-                <div key={idx} className="p-3.5 rounded-xl bg-zinc-950/80 border border-white/5 flex items-start justify-between">
+                <div key={idx} className="p-3.5 rounded-xl bg-[#11171B] border border-white/5 flex items-start justify-between">
                   <div>
                     <div className="text-sm font-bold text-white">{proj.title}</div>
                     <div className="text-xs text-zinc-400 mt-0.5">{proj.description}</div>
                   </div>
-                  <span className="text-[11px] font-mono text-rose-400 bg-rose-950/40 px-2 py-0.5 rounded border border-rose-800/40 shrink-0">
+                  <span className="text-[11px] font-mono text-[#35D9F2] bg-[#35D9F2]/10 px-2 py-0.5 rounded border border-[#35D9F2]/30 shrink-0">
                     {proj.tech}
                   </span>
                 </div>
@@ -162,7 +162,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ profile, onRefreshAl
         )}
 
         <div className="pt-4 border-t border-white/8 flex justify-end">
-          <CrimsonButton
+          <Button
             type="submit"
             disabled={saving}
             size="md"
@@ -170,7 +170,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ profile, onRefreshAl
             icon={<Save className="w-4 h-4" />}
           >
             {saving ? 'Synchronizing Profile...' : 'Save & Recalibrate Knowledge Graph'}
-          </CrimsonButton>
+          </Button>
         </div>
       </form>
     </div>

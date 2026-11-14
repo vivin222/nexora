@@ -1,0 +1,324 @@
+"""
+NEXORA Database Expansion & Migration
+Safely creates new tables for:
+- Courses, Modules, Lessons, Progress & Bookmarks
+- Coding Practice Lab Problems & Submissions
+- Project Studio & Milestones
+- Interview Simulator & Answers
+- Resume & Portfolio Analyses
+- Weekly Goals & Streaks
+- Achievements & Verified Credentials
+- Career Opportunity Discovery
+- Contextual Lesson AI Tutor Conversations
+Preserves 100% of existing tables, data, and learner records.
+"""
+import uuid
+import json
+from app.database import get_db
+
+def run_database_expansion():
+    with get_db() as conn:
+        cursor = conn.cursor()
+
+        # 1. Learning Center: Courses
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS courses (
+                id TEXT PRIMARY KEY,
+                slug TEXT UNIQUE NOT NULL,
+                title TEXT NOT NULL,
+                category TEXT NOT NULL,
+                skill_id TEXT NOT NULL,
+                difficulty_level TEXT NOT NULL,
+                estimated_hours INTEGER NOT NULL,
+                description TEXT NOT NULL,
+                thumbnail_icon TEXT DEFAULT 'BookOpen',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (skill_id) REFERENCES skills(id) ON DELETE CASCADE
+            );
+        """)
+
+        # 2. Course Modules
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS course_modules (
+                id TEXT PRIMARY KEY,
+                course_id TEXT NOT NULL,
+                order_index INTEGER NOT NULL,
+                title TEXT NOT NULL,
+                description TEXT DEFAULT '',
+                FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE
+            );
+        """)
+
+        # 3. Topic-Wise Lessons
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS course_lessons (
+                id TEXT PRIMARY KEY,
+                module_id TEXT NOT NULL,
+                course_id TEXT NOT NULL,
+                order_index INTEGER NOT NULL,
+                title TEXT NOT NULL,
+                content_markdown TEXT NOT NULL,
+                code_snippet TEXT DEFAULT '',
+                key_takeaways_json TEXT DEFAULT '[]',
+                quiz_question_json TEXT DEFAULT '{}',
+                estimated_minutes INTEGER DEFAULT 15,
+                FOREIGN KEY (module_id) REFERENCES course_modules(id) ON DELETE CASCADE,
+                FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE
+            );
+        """)
+
+        # 4. Lesson Progress & Bookmarks
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS lesson_progress (
+                id TEXT PRIMARY KEY,
+                learner_id TEXT NOT NULL,
+                lesson_id TEXT NOT NULL,
+                course_id TEXT NOT NULL,
+                completed INTEGER DEFAULT 0,
+                completed_at TIMESTAMP NULL,
+                bookmarked INTEGER DEFAULT 0,
+                UNIQUE(learner_id, lesson_id),
+                FOREIGN KEY (learner_id) REFERENCES learners(id) ON DELETE CASCADE,
+                FOREIGN KEY (lesson_id) REFERENCES course_lessons(id) ON DELETE CASCADE,
+                FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE
+            );
+        """)
+
+        # 5. Contextual AI Tutor Conversations
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS tutor_conversations (
+                id TEXT PRIMARY KEY,
+                learner_id TEXT NOT NULL,
+                course_id TEXT DEFAULT '',
+                lesson_id TEXT DEFAULT '',
+                sender TEXT NOT NULL,
+                message TEXT NOT NULL,
+                metadata_json TEXT DEFAULT '{}',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (learner_id) REFERENCES learners(id) ON DELETE CASCADE
+            );
+        """)
+
+        # 6. Coding Practice Lab: Problems
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS coding_problems (
+                id TEXT PRIMARY KEY,
+                slug TEXT UNIQUE NOT NULL,
+                title TEXT NOT NULL,
+                skill_id TEXT NOT NULL,
+                difficulty TEXT NOT NULL,
+                description TEXT NOT NULL,
+                language TEXT DEFAULT 'javascript',
+                initial_code TEXT NOT NULL,
+                test_cases_json TEXT NOT NULL, -- JSON array of {input, expected_output, description}
+                hints_json TEXT DEFAULT '[]',
+                FOREIGN KEY (skill_id) REFERENCES skills(id) ON DELETE CASCADE
+            );
+        """)
+
+        # 7. Coding Submissions
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS coding_submissions (
+                id TEXT PRIMARY KEY,
+                learner_id TEXT NOT NULL,
+                problem_id TEXT NOT NULL,
+                code TEXT NOT NULL,
+                language TEXT NOT NULL,
+                status TEXT NOT NULL, -- PASSED, FAILED, RUNTIME_ERROR
+                passed_tests INTEGER NOT NULL,
+                total_tests INTEGER NOT NULL,
+                feedback TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (learner_id) REFERENCES learners(id) ON DELETE CASCADE,
+                FOREIGN KEY (problem_id) REFERENCES coding_problems(id) ON DELETE CASCADE
+            );
+        """)
+
+        # 8. Project Studio: Projects
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS projects (
+                id TEXT PRIMARY KEY,
+                slug TEXT UNIQUE NOT NULL,
+                title TEXT NOT NULL,
+                target_career_id TEXT NOT NULL,
+                difficulty TEXT NOT NULL,
+                description TEXT NOT NULL,
+                architecture_markdown TEXT NOT NULL,
+                required_skills_json TEXT DEFAULT '[]',
+                deliverables_json TEXT DEFAULT '[]',
+                FOREIGN KEY (target_career_id) REFERENCES career_roles(id) ON DELETE CASCADE
+            );
+        """)
+
+        # 9. Project Milestones
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS project_milestones (
+                id TEXT PRIMARY KEY,
+                project_id TEXT NOT NULL,
+                order_index INTEGER NOT NULL,
+                title TEXT NOT NULL,
+                objective TEXT NOT NULL,
+                deliverable TEXT NOT NULL,
+                FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
+            );
+        """)
+
+        # 10. Project Submissions & Portfolio Artifacts
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS project_submissions (
+                id TEXT PRIMARY KEY,
+                learner_id TEXT NOT NULL,
+                project_id TEXT NOT NULL,
+                github_url TEXT DEFAULT '',
+                live_demo_url TEXT DEFAULT '',
+                reflection_notes TEXT NOT NULL,
+                status TEXT DEFAULT 'submitted', -- submitted, reviewed, verified
+                grade_feedback TEXT DEFAULT '',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (learner_id) REFERENCES learners(id) ON DELETE CASCADE,
+                FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
+            );
+        """)
+
+        # 11. Career Interview Questions & Sessions
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS interview_questions (
+                id TEXT PRIMARY KEY,
+                career_id TEXT NOT NULL,
+                category TEXT NOT NULL, -- Technical, Architectural, Behavioral
+                difficulty TEXT NOT NULL,
+                question_text TEXT NOT NULL,
+                criteria_notes TEXT NOT NULL,
+                FOREIGN KEY (career_id) REFERENCES career_roles(id) ON DELETE CASCADE
+            );
+        """)
+
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS interview_sessions (
+                id TEXT PRIMARY KEY,
+                learner_id TEXT NOT NULL,
+                career_id TEXT NOT NULL,
+                interview_type TEXT NOT NULL,
+                difficulty TEXT NOT NULL,
+                overall_score REAL DEFAULT 0,
+                status TEXT DEFAULT 'in_progress',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (learner_id) REFERENCES learners(id) ON DELETE CASCADE,
+                FOREIGN KEY (career_id) REFERENCES career_roles(id) ON DELETE CASCADE
+            );
+        """)
+
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS interview_answers (
+                id TEXT PRIMARY KEY,
+                session_id TEXT NOT NULL,
+                learner_id TEXT NOT NULL,
+                question_id TEXT NOT NULL,
+                user_answer_text TEXT NOT NULL,
+                score INTEGER NOT NULL, -- 0-100
+                ai_feedback TEXT NOT NULL,
+                strengths_json TEXT DEFAULT '[]',
+                improvements_json TEXT DEFAULT '[]',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (session_id) REFERENCES interview_sessions(id) ON DELETE CASCADE,
+                FOREIGN KEY (learner_id) REFERENCES learners(id) ON DELETE CASCADE,
+                FOREIGN KEY (question_id) REFERENCES interview_questions(id) ON DELETE CASCADE
+            );
+        """)
+
+        # 12. Resume & Portfolio Analyzer Records
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS resume_analyses (
+                id TEXT PRIMARY KEY,
+                learner_id TEXT NOT NULL,
+                career_id TEXT NOT NULL,
+                filename TEXT NOT NULL,
+                detected_skills_json TEXT NOT NULL,
+                missing_skills_json TEXT NOT NULL,
+                match_percentage REAL NOT NULL,
+                actionable_feedback_json TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (learner_id) REFERENCES learners(id) ON DELETE CASCADE,
+                FOREIGN KEY (career_id) REFERENCES career_roles(id) ON DELETE CASCADE
+            );
+        """)
+
+        # 13. Weekly Learning Goals & Habits
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS weekly_goals (
+                id TEXT PRIMARY KEY,
+                learner_id TEXT NOT NULL,
+                target_hours REAL DEFAULT 10.0,
+                target_lessons INTEGER DEFAULT 5,
+                target_assessments INTEGER DEFAULT 1,
+                completed_hours REAL DEFAULT 0.0,
+                completed_lessons INTEGER DEFAULT 0,
+                completed_assessments INTEGER DEFAULT 0,
+                week_start_date TEXT NOT NULL,
+                streak_days INTEGER DEFAULT 3,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(learner_id, week_start_date),
+                FOREIGN KEY (learner_id) REFERENCES learners(id) ON DELETE CASCADE
+            );
+        """)
+
+        # 14. Achievements & Credentials
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS achievements (
+                id TEXT PRIMARY KEY,
+                slug TEXT UNIQUE NOT NULL,
+                title TEXT NOT NULL,
+                description TEXT NOT NULL,
+                badge_icon TEXT NOT NULL,
+                category TEXT NOT NULL,
+                criteria_type TEXT NOT NULL,
+                threshold_val INTEGER NOT NULL
+            );
+        """)
+
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS learner_achievements (
+                id TEXT PRIMARY KEY,
+                learner_id TEXT NOT NULL,
+                achievement_id TEXT NOT NULL,
+                unlocked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(learner_id, achievement_id),
+                FOREIGN KEY (learner_id) REFERENCES learners(id) ON DELETE CASCADE,
+                FOREIGN KEY (achievement_id) REFERENCES achievements(id) ON DELETE CASCADE
+            );
+        """)
+
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS certificates (
+                id TEXT PRIMARY KEY,
+                learner_id TEXT NOT NULL,
+                title TEXT NOT NULL,
+                issue_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                certificate_code TEXT UNIQUE NOT NULL,
+                credential_url TEXT NOT NULL,
+                criteria_description TEXT NOT NULL,
+                FOREIGN KEY (learner_id) REFERENCES learners(id) ON DELETE CASCADE
+            );
+        """)
+
+        # 15. Career Opportunities (Demo Market Catalog)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS career_opportunities (
+                id TEXT PRIMARY KEY,
+                career_id TEXT NOT NULL,
+                company_name TEXT NOT NULL,
+                role_title TEXT NOT NULL,
+                location TEXT NOT NULL,
+                role_type TEXT NOT NULL, -- Full-time, Internship, Contract
+                salary_range TEXT NOT NULL,
+                required_skills_json TEXT NOT NULL,
+                description TEXT NOT NULL,
+                is_demo INTEGER DEFAULT 1,
+                FOREIGN KEY (career_id) REFERENCES career_roles(id) ON DELETE CASCADE
+            );
+        """)
+
+        print("Database expansion tables verified successfully.")
+
+if __name__ == "__main__":
+    run_database_expansion()

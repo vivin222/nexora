@@ -32,7 +32,6 @@ export const MentorView: React.FC<MentorViewProps> = ({ progress }) => {
       if (hist.length > 0) {
         setMessages(hist);
       } else {
-        // Welcome message with personalized context
         const careerName = progress?.career.title || 'Full Stack Developer';
         const score = progress?.overall_readiness_score || 52;
         setMessages([
@@ -107,30 +106,30 @@ export const MentorView: React.FC<MentorViewProps> = ({ progress }) => {
   return (
     <div className="space-y-6 animate-fadeIn max-w-5xl mx-auto flex flex-col h-[calc(100vh-140px)]">
       {/* Top Context Ingestion Ribbon */}
-      <div className="glass-panel p-4 rounded-xl border border-rose-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shrink-0">
+      <div className="bg-[#0B0F12] p-4 rounded-xl border border-white/8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shrink-0 shadow-lg">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-rose-600/20 border border-rose-500/40 flex items-center justify-center font-bold text-rose-400">
+          <div className="w-8 h-8 rounded-lg bg-[#35D9F2]/15 border border-[#35D9F2]/30 flex items-center justify-center font-bold text-[#35D9F2]">
             <Sparkles className="w-4 h-4" />
           </div>
           <div>
             <div className="text-xs font-bold text-white flex items-center gap-2">
               <span>NEXORA AI Career Mentor</span>
-              <Badge variant="crimson" size="sm">ACTIVE CONTEXT</Badge>
+              <Badge variant="cyan" size="sm">ACTIVE CONTEXT</Badge>
             </div>
             <div className="text-[11px] text-zinc-400 font-mono">
-              Target: <span className="text-rose-300 font-semibold">{progress?.career.title || 'Full Stack Developer'}</span> • Readiness: <span className="text-rose-400 font-semibold">{progress?.overall_readiness_score || 52}%</span>
+              Target: <span className="text-[#35D9F2] font-semibold">{progress?.career.title || 'Full Stack Developer'}</span> • Readiness: <span className="text-[#C5F45B] font-semibold">{progress?.overall_readiness_score || 52}%</span>
             </div>
           </div>
         </div>
 
         <div className="flex items-center gap-2 text-xs font-mono text-zinc-500">
-          <Cpu className="w-3.5 h-3.5 text-emerald-400" />
+          <Cpu className="w-3.5 h-3.5 text-[#C5F45B]" />
           <span>Gemini official SDK & Hybrid Engine</span>
         </div>
       </div>
 
       {/* Message Chat Feed */}
-      <div className="flex-1 glass-panel rounded-2xl border border-white/8 p-4 sm:p-6 overflow-y-auto space-y-4">
+      <div className="flex-1 bg-[#0B0F12] rounded-2xl border border-white/8 p-4 sm:p-6 overflow-y-auto space-y-4 shadow-xl">
         {messages.map((msg) => {
           const isUser = msg.sender === 'user';
 
@@ -141,16 +140,16 @@ export const MentorView: React.FC<MentorViewProps> = ({ progress }) => {
             >
               <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
                 isUser 
-                  ? 'bg-zinc-800 border border-zinc-700 text-zinc-300' 
-                  : 'bg-rose-950/80 border border-rose-500/40 text-rose-400 shadow-[0_0_12px_rgba(225,29,72,0.3)]'
+                  ? 'bg-[#161D22] border border-white/10 text-zinc-300' 
+                  : 'bg-[#11171B] border border-[#35D9F2]/30 text-[#35D9F2] shadow-[0_0_12px_rgba(53,217,242,0.15)]'
               }`}>
                 {isUser ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
               </div>
 
               <div className={`max-w-[80%] rounded-2xl p-4 text-xs sm:text-sm leading-relaxed ${
                 isUser
-                  ? 'bg-zinc-900 border border-zinc-800 text-zinc-100 rounded-tr-none'
-                  : 'bg-zinc-950/90 border border-white/10 text-zinc-200 rounded-tl-none shadow-lg'
+                  ? 'bg-[#161D22] border border-white/10 text-[#F5F7F4] rounded-tr-none'
+                  : 'bg-[#050608] border border-white/8 text-zinc-200 rounded-tl-none shadow-lg'
               }`}>
                 <div className="whitespace-pre-wrap font-sans">
                   {msg.message}
@@ -167,11 +166,11 @@ export const MentorView: React.FC<MentorViewProps> = ({ progress }) => {
 
         {loading && (
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-rose-950/80 border border-rose-500/40 text-rose-400 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-[#11171B] border border-[#35D9F2]/30 text-[#35D9F2] flex items-center justify-center">
               <Bot className="w-4 h-4" />
             </div>
-            <div className="bg-zinc-950 border border-white/10 p-3 rounded-2xl rounded-tl-none text-xs text-zinc-400 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping" />
+            <div className="bg-[#050608] border border-white/10 p-3 rounded-2xl rounded-tl-none text-xs text-zinc-400 flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-[#35D9F2] animate-ping" />
               <span>Analyzing learner state & drafting personalized advice...</span>
             </div>
           </div>
@@ -187,7 +186,7 @@ export const MentorView: React.FC<MentorViewProps> = ({ progress }) => {
           <button
             key={idx}
             onClick={() => handleSend(p)}
-            className="px-3 py-1 rounded-full bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white border border-white/5 transition-colors whitespace-nowrap cursor-pointer text-[11px]"
+            className="px-3 py-1 rounded-full bg-[#0B0F12] hover:bg-[#11171B] text-zinc-400 hover:text-white border border-white/5 transition-colors whitespace-nowrap cursor-pointer text-[11px]"
           >
             {p}
           </button>
@@ -197,7 +196,7 @@ export const MentorView: React.FC<MentorViewProps> = ({ progress }) => {
       {/* Input Bar */}
       <form 
         onSubmit={(e) => { e.preventDefault(); handleSend(); }}
-        className="glass-panel p-2 rounded-xl border border-white/10 flex items-center gap-2 shrink-0"
+        className="bg-[#0B0F12] p-2 rounded-xl border border-white/10 flex items-center gap-2 shrink-0 shadow-lg"
       >
         <input
           type="text"
@@ -210,7 +209,7 @@ export const MentorView: React.FC<MentorViewProps> = ({ progress }) => {
         <button
           type="submit"
           disabled={!inputText.trim() || loading}
-          className="p-2.5 rounded-lg bg-rose-600 hover:bg-rose-500 disabled:opacity-50 disabled:cursor-not-allowed text-white transition-all shadow-[0_0_12px_rgba(225,29,72,0.4)] cursor-pointer"
+          className="p-2.5 rounded-lg bg-[#35D9F2] hover:bg-[#2bc4dc] disabled:opacity-40 disabled:cursor-not-allowed text-[#050608] transition-all font-semibold shadow-[0_0_12px_rgba(53,217,242,0.3)] cursor-pointer"
         >
           <Send className="w-4 h-4" />
         </button>

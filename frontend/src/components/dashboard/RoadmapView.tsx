@@ -2,19 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { 
   Compass, 
   CheckCircle2, 
-  Circle, 
   Clock, 
   BookOpen, 
   RotateCw, 
   Sparkles, 
-  ArrowRight,
-  ShieldCheck,
-  Award
+  ArrowRight, 
+  Check
 } from 'lucide-react';
 import { Roadmap, Milestone } from '../../types';
 import { api } from '../../api/client';
 import { Badge } from '../common/Badge';
-import { CrimsonButton } from '../common/CrimsonButton';
+import { Button } from '../common/Button';
 
 interface RoadmapViewProps {
   onRefreshAll: () => void;
@@ -73,7 +71,7 @@ export const RoadmapView: React.FC<RoadmapViewProps> = ({ onRefreshAll }) => {
     return (
       <div className="flex items-center justify-center h-64 text-zinc-500 font-mono text-sm">
         <div className="flex items-center gap-2">
-          <div className="w-4 h-4 border-2 border-rose-500 border-t-transparent rounded-full animate-spin" />
+          <div className="w-4 h-4 border-2 border-[#35D9F2] border-t-transparent rounded-full animate-spin" />
           <span>Synthesizing topological learning path...</span>
         </div>
       </div>
@@ -83,44 +81,44 @@ export const RoadmapView: React.FC<RoadmapViewProps> = ({ onRefreshAll }) => {
   return (
     <div className="space-y-8 animate-fadeIn">
       {/* Top Banner */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pb-6 border-b border-white/8">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <Badge variant="crimson" size="sm">TOPOLOGICAL SEQUENCE</Badge>
-            <span className="text-xs font-mono text-zinc-500">Roadmap Agent v1.0</span>
+          <div className="flex items-center gap-2 mb-1.5">
+            <Badge variant="cyan" size="sm">TOPOLOGICAL SEQUENCE</Badge>
+            <span className="text-xs font-mono text-zinc-500">• Roadmap Agent DAG</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
             {roadmap.title}
           </h1>
-          <p className="text-sm text-zinc-400 mt-1 max-w-2xl">
+          <p className="text-sm text-[#929CA3] mt-1 max-w-2xl leading-relaxed">
             {roadmap.description}
           </p>
         </div>
 
-        <CrimsonButton
+        <Button
           onClick={handleRegenerate}
           disabled={regenerating}
-          variant="secondary"
+          variant="outline"
           size="sm"
           icon={<RotateCw className={`w-3.5 h-3.5 ${regenerating ? 'animate-spin' : ''}`} />}
         >
           {regenerating ? 'Calibrating...' : 'Re-sequence Path'}
-        </CrimsonButton>
+        </Button>
       </div>
 
       {/* Progress Bar Ribbon */}
-      <div className="glass-panel p-6 rounded-2xl border border-white/8 space-y-3">
+      <div className="bg-[#0B0F12] p-6 rounded-2xl border border-white/8 space-y-3 shadow-lg">
         <div className="flex items-center justify-between text-xs font-mono">
           <span className="text-zinc-400">
             Roadmap Completion: <strong className="text-white">{roadmap.completed_milestones}</strong> of{' '}
             <strong className="text-white">{roadmap.total_milestones}</strong> Milestones
           </span>
-          <span className="text-rose-400 font-bold">{roadmap.progress_percentage}% Verified</span>
+          <span className="text-[#35D9F2] font-bold">{roadmap.progress_percentage}% Verified</span>
         </div>
 
-        <div className="w-full bg-zinc-900 h-2.5 rounded-full overflow-hidden flex border border-white/5">
+        <div className="w-full bg-[#11171B] h-2.5 rounded-full overflow-hidden flex border border-white/5">
           <div 
-            className="bg-gradient-to-r from-rose-600 to-rose-500 h-full transition-all duration-500 shadow-[0_0_12px_rgba(225,29,72,0.5)]"
+            className="bg-[#35D9F2] h-full transition-all duration-500 shadow-[0_0_12px_rgba(53,217,242,0.4)]"
             style={{ width: `${roadmap.progress_percentage}%` }}
           />
         </div>
@@ -135,10 +133,10 @@ export const RoadmapView: React.FC<RoadmapViewProps> = ({ onRefreshAll }) => {
           return (
             <div
               key={milestone.id}
-              className={`glass-panel p-6 rounded-2xl border transition-all duration-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 ${
+              className={`p-6 rounded-2xl border transition-all duration-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 ${
                 isCompleted 
-                  ? 'border-emerald-500/30 bg-emerald-950/10' 
-                  : 'border-white/8 hover:border-white/20'
+                  ? 'border-[#C5F45B]/30 bg-[#0B0F12]/80' 
+                  : 'bg-[#0B0F12] border-white/8 hover:border-white/20'
               }`}
             >
               <div className="flex items-start gap-4">
@@ -148,13 +146,13 @@ export const RoadmapView: React.FC<RoadmapViewProps> = ({ onRefreshAll }) => {
                   disabled={isTogglingThis}
                   className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-all cursor-pointer ${
                     isCompleted
-                      ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 shadow-[0_0_10px_rgba(16,185,129,0.3)]'
-                      : 'bg-zinc-900 text-zinc-500 border border-zinc-700 hover:border-rose-500 hover:text-rose-400'
+                      ? 'bg-[#C5F45B]/20 text-[#C5F45B] border border-[#C5F45B]/40 shadow-[0_0_10px_rgba(197,244,91,0.3)]'
+                      : 'bg-[#11171B] text-zinc-500 border border-white/10 hover:border-[#35D9F2] hover:text-[#35D9F2]'
                   }`}
                   title={isCompleted ? 'Mark as Pending' : 'Mark as Completed'}
                 >
                   {isCompleted ? (
-                    <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                    <CheckCircle2 className="w-5 h-5 text-[#C5F45B]" />
                   ) : (
                     <span className="font-mono text-xs font-bold">{idx + 1}</span>
                   )}
@@ -164,22 +162,22 @@ export const RoadmapView: React.FC<RoadmapViewProps> = ({ onRefreshAll }) => {
                 <div className="space-y-1.5">
                   <div className="flex flex-wrap items-center gap-2">
                     <h3 className={`text-base font-bold transition-colors ${
-                      isCompleted ? 'text-zinc-300 line-through' : 'text-white'
+                      isCompleted ? 'text-zinc-400 line-through' : 'text-white'
                     }`}>
                       {milestone.title}
                     </h3>
-                    <Badge variant={isCompleted ? 'emerald' : 'crimson'} size="sm">
+                    <Badge variant={isCompleted ? 'lime' : 'cyan'} size="sm">
                       {isCompleted ? 'COMPLETED' : `STEP ${idx + 1}`}
                     </Badge>
                   </div>
 
-                  <p className="text-xs text-zinc-400 leading-relaxed max-w-2xl">
+                  <p className="text-xs text-[#929CA3] leading-relaxed max-w-2xl">
                     {milestone.objective}
                   </p>
 
                   <div className="flex flex-wrap items-center gap-4 text-xs font-mono text-zinc-500 pt-1">
                     <span className="flex items-center gap-1.5 text-zinc-400">
-                      <BookOpen className="w-3.5 h-3.5 text-rose-400" />
+                      <BookOpen className="w-3.5 h-3.5 text-[#35D9F2]" />
                       {milestone.resource_type}
                     </span>
                     <span className="flex items-center gap-1.5 text-zinc-400">
@@ -187,7 +185,7 @@ export const RoadmapView: React.FC<RoadmapViewProps> = ({ onRefreshAll }) => {
                       ~{milestone.estimated_hours} hrs
                     </span>
                     {milestone.completed_at && (
-                      <span className="text-emerald-400 text-[11px]">
+                      <span className="text-[#C5F45B] text-[11px]">
                         ✓ Completed {new Date(milestone.completed_at).toLocaleDateString()}
                       </span>
                     )}
@@ -201,8 +199,8 @@ export const RoadmapView: React.FC<RoadmapViewProps> = ({ onRefreshAll }) => {
                 disabled={isTogglingThis}
                 className={`text-xs px-3.5 py-1.5 rounded-lg font-medium transition-all shrink-0 cursor-pointer ${
                   isCompleted
-                    ? 'bg-zinc-900 hover:bg-zinc-800 text-zinc-400 border border-zinc-700'
-                    : 'bg-rose-950/80 hover:bg-rose-900 text-rose-300 border border-rose-800/60 shadow-[0_0_12px_rgba(225,29,72,0.25)]'
+                    ? 'bg-[#11171B] hover:bg-white/5 text-zinc-400 border border-white/10'
+                    : 'bg-[#35D9F2]/10 hover:bg-[#35D9F2]/20 text-[#35D9F2] border border-[#35D9F2]/30 shadow-[0_0_12px_rgba(53,217,242,0.15)]'
                 }`}
               >
                 {isTogglingThis ? 'Syncing...' : (isCompleted ? 'Reopen' : 'Mark Complete')}

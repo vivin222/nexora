@@ -1,6 +1,6 @@
 import React from 'react';
-import { Sparkles, ArrowRight, LayoutDashboard, Cpu, ShieldCheck } from 'lucide-react';
-import { CrimsonButton } from './common/CrimsonButton';
+import { ArrowRight, LayoutDashboard, Cpu, ShieldCheck } from 'lucide-react';
+import { Button } from './common/Button';
 
 interface NavbarProps {
   currentView: 'landing' | 'dashboard';
@@ -8,7 +8,7 @@ interface NavbarProps {
   onOpenSection?: (sectionId: string) => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ currentView, onNavigate, onOpenSection }) => {
+export const Navbar: React.FC<NavbarProps> = ({ currentView, onNavigate }) => {
   const handleScrollTo = (id: string) => {
     if (currentView !== 'landing') {
       onNavigate('landing');
@@ -23,27 +23,27 @@ export const Navbar: React.FC<NavbarProps> = ({ currentView, onNavigate, onOpenS
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full glass-panel border-b border-white/8 backdrop-blur-xl">
+    <header className="sticky top-0 z-50 w-full surface-glass border-b border-white/8 backdrop-blur-2xl">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Brand Identity */}
         <div 
           onClick={() => onNavigate('landing')}
           className="flex items-center gap-3 cursor-pointer group"
         >
-          <div className="relative flex items-center justify-center w-9 h-9 rounded-lg bg-zinc-950 border border-rose-500/40 group-hover:border-rose-400 transition-all duration-300 shadow-[0_0_15px_rgba(225,29,72,0.3)]">
-            <span className="text-rose-500 font-extrabold text-lg tracking-wider">N</span>
-            <div className="absolute inset-0 rounded-lg bg-rose-600/10 blur-sm group-hover:bg-rose-600/20 transition-all" />
+          <div className="relative flex items-center justify-center w-8 h-8 rounded-lg bg-[#050608] border border-[#35D9F2]/40 group-hover:border-[#35D9F2] transition-all duration-300 shadow-[0_0_15px_rgba(53,217,242,0.25)]">
+            <span className="text-[#35D9F2] font-black text-sm tracking-wider">N</span>
+            <div className="absolute inset-0 rounded-lg bg-[#35D9F2]/10 blur-sm group-hover:bg-[#35D9F2]/20 transition-all" />
           </div>
           <div className="flex flex-col">
             <div className="flex items-center gap-2">
-              <span className="text-xl font-bold tracking-tight text-white group-hover:text-rose-100 transition-colors">
+              <span className="text-base font-bold tracking-tight text-[#F5F7F4] group-hover:text-[#35D9F2] transition-colors">
                 NEXORA
               </span>
-              <span className="text-[10px] px-1.5 py-0.2 rounded bg-rose-950/70 text-rose-400 border border-rose-800/60 font-mono">
-                v1.0
+              <span className="text-[10px] px-1.5 py-0.2 rounded bg-[#35D9F2]/10 text-[#35D9F2] border border-[#35D9F2]/30 font-mono">
+                v2.0
               </span>
             </div>
-            <span className="text-[10px] text-zinc-400 tracking-wider uppercase font-medium">
+            <span className="text-[10px] text-[#929CA3] tracking-wider uppercase font-medium">
               Your Potential. Reimagined.
             </span>
           </div>
@@ -51,42 +51,48 @@ export const Navbar: React.FC<NavbarProps> = ({ currentView, onNavigate, onOpenS
 
         {/* Desktop Nav Links */}
         {currentView === 'landing' ? (
-          <nav className="hidden md:flex items-center gap-7 text-sm font-medium text-zinc-300">
+          <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-[#929CA3]">
             <button 
-              onClick={() => handleScrollTo('platform-showcase')}
-              className="hover:text-rose-400 transition-colors cursor-pointer"
+              onClick={() => handleScrollTo('product-showcase')}
+              className="hover:text-white transition-colors cursor-pointer"
+            >
+              Product
+            </button>
+            <button 
+              onClick={() => handleScrollTo('intelligence-engine')}
+              className="hover:text-white transition-colors cursor-pointer"
             >
               Platform
             </button>
             <button 
+              onClick={() => handleScrollTo('learning-experience')}
+              className="hover:text-white transition-colors cursor-pointer"
+            >
+              Learning
+            </button>
+            <button 
               onClick={() => handleScrollTo('agent-ecosystem')}
-              className="hover:text-rose-400 transition-colors flex items-center gap-1.5 cursor-pointer"
+              className="hover:text-white transition-colors flex items-center gap-1.5 cursor-pointer"
             >
-              <Cpu className="w-3.5 h-3.5 text-rose-500" />
-              Agent Ecosystem
+              <Cpu className="w-3.5 h-3.5 text-[#35D9F2]" />
+              AI Ecosystem
             </button>
             <button 
-              onClick={() => handleScrollTo('how-it-works')}
-              className="hover:text-rose-400 transition-colors cursor-pointer"
+              onClick={() => handleScrollTo('career-transformation')}
+              className="hover:text-white transition-colors cursor-pointer"
             >
-              How It Works
-            </button>
-            <button 
-              onClick={() => handleScrollTo('comparison')}
-              className="hover:text-rose-400 transition-colors cursor-pointer"
-            >
-              Intelligence Architecture
+              Careers
             </button>
           </nav>
         ) : (
-          <div className="hidden md:flex items-center gap-3 text-xs text-zinc-400 font-mono">
-            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-zinc-900 border border-zinc-800">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span>Orchestrator: ACTIVE</span>
+          <div className="hidden md:flex items-center gap-3 text-xs text-[#929CA3] font-mono">
+            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#11171B] border border-white/10">
+              <span className="w-2 h-2 rounded-full bg-[#C5F45B] animate-pulse" />
+              <span>Orchestrator: 10 AGENTS ACTIVE</span>
             </div>
-            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-zinc-900 border border-zinc-800">
-              <ShieldCheck className="w-3.5 h-3.5 text-rose-400" />
-              <span>Gemini & Engine: SYNCED</span>
+            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#11171B] border border-white/10">
+              <ShieldCheck className="w-3.5 h-3.5 text-[#35D9F2]" />
+              <span>Gemini 2.5 Engine Synced</span>
             </div>
           </div>
         )}
@@ -94,23 +100,31 @@ export const Navbar: React.FC<NavbarProps> = ({ currentView, onNavigate, onOpenS
         {/* Header Action Button */}
         <div className="flex items-center gap-3">
           {currentView === 'landing' ? (
-            <CrimsonButton
-              onClick={() => onNavigate('dashboard')}
-              variant="primary"
-              size="md"
-              icon={<LayoutDashboard className="w-4 h-4" />}
-            >
-              Launch Platform
-              <ArrowRight className="w-4 h-4 ml-1" />
-            </CrimsonButton>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => onNavigate('dashboard')}
+                className="text-xs text-[#929CA3] hover:text-white font-medium transition-colors cursor-pointer"
+              >
+                Sign In
+              </button>
+              <Button
+                onClick={() => onNavigate('dashboard')}
+                variant="primary"
+                size="md"
+                icon={<LayoutDashboard className="w-4 h-4" />}
+              >
+                Launch Workspace
+                <ArrowRight className="w-3.5 h-3.5 ml-1" />
+              </Button>
+            </div>
           ) : (
-            <CrimsonButton
+            <Button
               onClick={() => onNavigate('landing')}
               variant="secondary"
               size="sm"
             >
               Back to Overview
-            </CrimsonButton>
+            </Button>
           )}
         </div>
       </div>

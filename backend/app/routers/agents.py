@@ -52,6 +52,30 @@ def get_agents_status() -> Dict[str, Any]:
                 "role": "Proficiency Grader & Empirical Feedback Loop",
                 "status": "ONLINE",
                 "calibration": "Instant Verification"
+            },
+            {
+                "name": "LearningAgent",
+                "role": "Structured Curriculum & Course Matcher",
+                "status": "ONLINE",
+                "mapping": "Skill-Gap Aligned Pathways"
+            },
+            {
+                "name": "TutorAgent",
+                "role": "Contextual Pedagogical Explainer & Doubt Solver",
+                "status": "ONLINE",
+                "model": "Gemini 2.5 Flash / Hybrid Fallback"
+            },
+            {
+                "name": "InterviewEvaluationAgent",
+                "role": "Technical & Behavioral Interview Assessor",
+                "status": "ONLINE",
+                "rubric": "Role-Specific Scoring"
+            },
+            {
+                "name": "ResumeAnalysisAgent",
+                "role": "Resume Parser & Career Benchmark Evaluator",
+                "status": "ONLINE",
+                "parser": "Deterministic Extraction & Gap Cross-Check"
             }
         ],
         "ai_engine": {
@@ -69,7 +93,7 @@ def get_agent_logs(user_id: str = Depends(get_current_user_id)) -> List[Dict[str
         cursor.execute("""
             SELECT * FROM agent_logs
             WHERE learner_id = ?
-            ORDER BY created_at DESC LIMIT 30
+            ORDER BY created_at DESC LIMIT 40
         """, (user_id,))
         return [dict(r) for r in cursor.fetchall()]
 

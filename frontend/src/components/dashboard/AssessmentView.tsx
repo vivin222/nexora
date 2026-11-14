@@ -14,7 +14,7 @@ import {
 import { Assessment, AssessmentResult } from '../../types';
 import { api } from '../../api/client';
 import { Badge } from '../common/Badge';
-import { CrimsonButton } from '../common/CrimsonButton';
+import { Button } from '../common/Button';
 
 interface AssessmentViewProps {
   onRefreshAll: () => void;
@@ -97,7 +97,7 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({ onRefreshAll, on
     return (
       <div className="flex items-center justify-center h-64 text-zinc-500 font-mono text-sm">
         <div className="flex items-center gap-2">
-          <div className="w-4 h-4 border-2 border-rose-500 border-t-transparent rounded-full animate-spin" />
+          <div className="w-4 h-4 border-2 border-[#35D9F2] border-t-transparent rounded-full animate-spin" />
           <span>Loading Assessment Catalog...</span>
         </div>
       </div>
@@ -119,10 +119,10 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({ onRefreshAll, on
               ← Back to Assessments Catalog
             </button>
             <h1 className="text-2xl font-bold text-white">{activeAssessment.title}</h1>
-            <p className="text-xs text-zinc-400 mt-0.5">{activeAssessment.description}</p>
+            <p className="text-xs text-[#929CA3] mt-0.5">{activeAssessment.description}</p>
           </div>
 
-          <Badge variant="crimson" size="sm">
+          <Badge variant="cyan" size="sm">
             {result ? 'EVALUATION COMPLETE' : 'IN PROGRESS'}
           </Badge>
         </div>
@@ -130,16 +130,16 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({ onRefreshAll, on
         {/* Results Banner if submitted */}
         {result && (
           <div className={`p-6 rounded-2xl border ${
-            result.passed ? 'bg-emerald-950/20 border-emerald-500/40' : 'bg-rose-950/20 border-rose-500/40'
-          } space-y-4 crimson-glow-sm`}>
+            result.passed ? 'bg-[#C5F45B]/15 border-[#C5F45B]/40 shadow-[0_0_30px_rgba(197,244,91,0.1)]' : 'bg-rose-500/15 border-rose-500/40 shadow-[0_0_30px_rgba(244,63,94,0.1)]'
+          } space-y-4`}>
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
                 <div className="flex items-center gap-2">
-                  <Badge variant={result.passed ? 'emerald' : 'crimson'} size="md">
+                  <Badge variant={result.passed ? 'lime' : 'amber'} size="md">
                     {result.passed ? 'ASSESSMENT PASSED' : 'NEEDS PRACTICE'}
                   </Badge>
                   <span className="text-xs font-mono text-zinc-400">
-                    Verified Proficiency Updated: <strong className="text-white">{result.new_proficiency}%</strong>
+                    Verified Proficiency: <strong className="text-white">{result.new_proficiency}%</strong>
                   </span>
                 </div>
                 <h3 className="text-xl font-bold text-white mt-1">
@@ -149,22 +149,22 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({ onRefreshAll, on
               </div>
 
               <div className="flex items-center gap-3">
-                <CrimsonButton
+                <Button
                   onClick={() => onNavigateTab('roadmap')}
                   variant="primary"
                   size="sm"
                   icon={<ArrowRight className="w-4 h-4 ml-1" />}
                 >
                   View Adapted Roadmap
-                </CrimsonButton>
-                <CrimsonButton
+                </Button>
+                <Button
                   onClick={() => handleStartQuiz(activeAssessment.id)}
-                  variant="secondary"
+                  variant="outline"
                   size="sm"
                   icon={<RotateCw className="w-3.5 h-3.5" />}
                 >
                   Retake
-                </CrimsonButton>
+                </Button>
               </div>
             </div>
           </div>
@@ -179,15 +179,15 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({ onRefreshAll, on
             return (
               <div 
                 key={q.id}
-                className={`glass-panel p-6 rounded-2xl border transition-all ${
+                className={`bg-[#0B0F12] p-6 rounded-2xl border transition-all ${
                   resultItem 
-                    ? (resultItem.is_correct ? 'border-emerald-500/40' : 'border-rose-500/40')
+                    ? (resultItem.is_correct ? 'border-[#C5F45B]/40' : 'border-rose-500/40')
                     : 'border-white/8'
                 }`}
               >
                 <div className="flex items-start justify-between gap-4 mb-4">
                   <div className="flex items-center gap-2.5">
-                    <span className="w-6 h-6 rounded-full bg-zinc-800 text-rose-400 font-mono text-xs font-bold flex items-center justify-center shrink-0">
+                    <span className="w-6 h-6 rounded-full bg-[#11171B] text-[#35D9F2] font-mono text-xs font-bold flex items-center justify-center shrink-0 border border-white/5">
                       {idx + 1}
                     </span>
                     <h3 className="text-sm font-semibold text-white leading-relaxed">
@@ -198,7 +198,7 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({ onRefreshAll, on
                   {resultItem && (
                     <span className="shrink-0">
                       {resultItem.is_correct ? (
-                        <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                        <CheckCircle2 className="w-5 h-5 text-[#C5F45B]" />
                       ) : (
                         <XCircle className="w-5 h-5 text-rose-400" />
                       )}
@@ -210,16 +210,16 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({ onRefreshAll, on
                 <div className="space-y-2 pl-8">
                   {q.options.map((opt, optIdx) => {
                     const isSelected = (userChoice === optIdx);
-                    let optionStyle = 'border-white/5 bg-zinc-950/60 hover:bg-zinc-900 text-zinc-300';
+                    let optionStyle = 'border-white/5 bg-[#11171B] hover:bg-[#161D22] text-zinc-300';
 
                     if (resultItem) {
                       if (optIdx === resultItem.correct_option_index) {
-                        optionStyle = 'border-emerald-500/60 bg-emerald-950/30 text-emerald-200 font-semibold';
+                        optionStyle = 'border-[#C5F45B]/60 bg-[#C5F45B]/15 text-[#C5F45B] font-semibold';
                       } else if (isSelected && !resultItem.is_correct) {
-                        optionStyle = 'border-rose-500/60 bg-rose-950/30 text-rose-200';
+                        optionStyle = 'border-rose-500/60 bg-rose-500/15 text-rose-200';
                       }
                     } else if (isSelected) {
-                      optionStyle = 'border-rose-500 bg-rose-950/40 text-rose-200 font-medium';
+                      optionStyle = 'border-[#35D9F2] bg-[#35D9F2]/10 text-[#35D9F2] font-medium';
                     }
 
                     return (
@@ -231,9 +231,9 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({ onRefreshAll, on
                         }`}
                       >
                         <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${
-                          isSelected ? 'border-rose-500 bg-rose-600' : 'border-zinc-700'
+                          isSelected ? 'border-[#35D9F2] bg-[#35D9F2]' : 'border-zinc-700'
                         }`}>
-                          {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
+                          {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-[#050608]" />}
                         </div>
                         <span className="leading-relaxed">{opt}</span>
                       </div>
@@ -243,7 +243,7 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({ onRefreshAll, on
 
                 {/* Question Explanation if graded */}
                 {resultItem && (
-                  <div className="mt-4 ml-8 p-3.5 rounded-xl bg-zinc-950 border border-white/5 text-xs text-zinc-300 font-mono space-y-1">
+                  <div className="mt-4 ml-8 p-3.5 rounded-xl bg-[#050608] border border-white/5 text-xs text-zinc-300 font-mono space-y-1">
                     <div className="text-zinc-500 font-bold uppercase text-[10px]">Technical Rationale:</div>
                     <div>{resultItem.explanation}</div>
                   </div>
@@ -256,7 +256,7 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({ onRefreshAll, on
         {/* Action Button */}
         {!result && (
           <div className="flex justify-end pt-4">
-            <CrimsonButton
+            <Button
               onClick={handleSubmit}
               disabled={submitting}
               size="lg"
@@ -264,7 +264,7 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({ onRefreshAll, on
               icon={<Award className="w-5 h-5 ml-1" />}
             >
               {submitting ? 'Assessment Agent Grading...' : 'Submit & Recalibrate Skills'}
-            </CrimsonButton>
+            </Button>
           </div>
         )}
       </div>
@@ -274,17 +274,17 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({ onRefreshAll, on
   // View: Catalog List
   return (
     <div className="space-y-8 animate-fadeIn">
-      <div>
-        <div className="flex items-center gap-2 mb-1">
-          <Badge variant="crimson" size="sm">EMPIRICAL VERIFICATION</Badge>
-          <span className="text-xs font-mono text-zinc-500">Assessment Agent v1.0</span>
+      <div className="pb-6 border-b border-white/8">
+        <div className="flex items-center gap-2 mb-1.5">
+          <Badge variant="cyan" size="sm">EMPIRICAL VERIFICATION</Badge>
+          <span className="text-xs font-mono text-zinc-500">• Assessment Agent DAG</span>
         </div>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
           Adaptive Skill Assessments
         </h1>
-        <p className="text-sm text-zinc-400 mt-1 max-w-2xl">
+        <p className="text-sm text-[#929CA3] mt-1 max-w-2xl leading-relaxed">
           Taking an assessment verifies your conceptual mastery against real engineering standards. 
-          Your results directly update your verified skill proficiency, triggering automatic recalibration across the roadmap.
+          Your results directly update verified skill proficiency, triggering automatic recalibration across the roadmap.
         </p>
       </div>
 
@@ -295,17 +295,17 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({ onRefreshAll, on
           return (
             <div
               key={asmt.id}
-              className="glass-panel p-6 rounded-2xl border border-white/8 hover:border-rose-500/30 transition-all flex flex-col justify-between"
+              className="bg-[#0B0F12] p-6 rounded-2xl border border-white/8 hover:border-[#35D9F2]/30 transition-all flex flex-col justify-between shadow-lg"
             >
               <div className="space-y-3">
                 <div className="flex items-start justify-between">
                   <div>
-                    <span className="text-xs font-mono text-rose-400 uppercase tracking-wider">
+                    <span className="text-xs font-mono text-[#35D9F2] uppercase tracking-wider">
                       {asmt.skill_name || 'Core Engineering'}
                     </span>
                     <h3 className="text-lg font-bold text-white mt-0.5">{asmt.title}</h3>
                   </div>
-                  <span className="text-xs font-mono text-zinc-400 bg-zinc-900 px-2 py-0.5 rounded border border-white/5">
+                  <span className="text-xs font-mono text-zinc-400 bg-[#11171B] px-2.5 py-1 rounded-lg border border-white/5">
                     {asmt.difficulty}
                   </span>
                 </div>
@@ -321,9 +321,9 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({ onRefreshAll, on
                 </div>
 
                 {hasAttempted && (
-                  <div className="p-3 rounded-lg bg-zinc-950 border border-white/5 flex items-center justify-between text-xs font-mono">
+                  <div className="p-3 rounded-lg bg-[#11171B] border border-white/5 flex items-center justify-between text-xs font-mono">
                     <span className="text-zinc-400">Last Attempt:</span>
-                    <span className={asmt.last_result?.passed ? 'text-emerald-400 font-bold' : 'text-amber-400 font-bold'}>
+                    <span className={asmt.last_result?.passed ? 'text-[#C5F45B] font-bold' : 'text-amber-400 font-bold'}>
                       {asmt.last_result?.percentage}% ({asmt.last_result?.passed ? 'Verified' : 'Retake Advised'})
                     </span>
                   </div>
@@ -334,14 +334,14 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({ onRefreshAll, on
                 <span className="text-xs text-zinc-500 font-mono">
                   Feedback Loop: Active
                 </span>
-                <CrimsonButton
+                <Button
                   onClick={() => handleStartQuiz(asmt.id)}
                   variant="primary"
                   size="sm"
                   icon={<ClipboardCheck className="w-4 h-4" />}
                 >
                   {hasAttempted ? 'Retake Assessment' : 'Start Assessment'}
-                </CrimsonButton>
+                </Button>
               </div>
             </div>
           );

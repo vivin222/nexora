@@ -23,10 +23,16 @@ import {
   CareerOpportunity,
   UserResponse,
   AuthResponse,
-  OnboardingSubmitPayload
+  OnboardingSubmitPayload,
+  AdminStats,
+  AdminStudentItem,
+  AdminAuditLogItem,
+  AdminResourceItem
 } from '../types';
 
-const API_BASE = '/api';
+const API_BASE = (import.meta as any).env?.VITE_API_URL 
+  ? `${(import.meta as any).env.VITE_API_URL}/api` 
+  : '/api';
 
 async function fetchJSON<T>(endpoint: string, options?: RequestInit): Promise<T> {
   const token = localStorage.getItem('nexora_token');
@@ -58,10 +64,19 @@ async function fetchJSON<T>(endpoint: string, options?: RequestInit): Promise<T>
 
 export const api = {
   // Authentication & Session
-  register: (email: string, password: string, full_name: string, headline?: string) =>
+  register: (payload: {
+    email: string;
+    password: string;
+    full_name: string;
+    headline?: string;
+    education_level?: string;
+    institution?: string;
+    department?: string;
+    graduation_year?: string;
+  }) =>
     fetchJSON<AuthResponse>('/auth/register', {
       method: 'POST',
-      body: JSON.stringify({ email, password, full_name, headline }),
+      body: JSON.stringify(payload),
     }),
   login: (email: string, password: string) =>
     fetchJSON<AuthResponse>('/auth/login', {
@@ -247,4 +262,42 @@ export const api = {
   // 8. Career Opportunities
   getOpportunities: (careerId?: string) =>
     fetchJSON<CareerOpportunity[]>(careerId ? `/opportunities?career_id=${careerId}` : '/opportunities'),
+
+  // 9. Admin Portal Endpoints
+  getAdminStats: () => fetchJSON<AdminStats>('/admin/stats'),
+  getAdminStudents: (status?: string, department?: string, institution?: string, search?: string) => {
+    const params = new URLSearchParams();
+    if (status && status !== 'all') params.append('status', status);
+    if (department) params.append('department', department);
+    if (institution) params.append('institution', institution);
+    if (search) params.append('search', search);
+    const q = params.toString();
+    return fetchJSON<AdminStudentItem[]>(`/admin/students${q ? `?${q}` : ''}`);
+  },
+  getStudentDetails: (studentId: string) => fetchJSON<any>(`/admin/students/${studentId}`),
+  approveStudent: (studentId: string) =>
+    fetchJSON<{ status: string; message: string }>(`/admin/students/${studentId}/approve`, {
+      method: 'POST',
+    }),
+  rejectStudent: (studentId: string, rejection_reason: string) =>
+    fetchJSON<{ status: string; message: string }>(`/admin/students/${studentId}/reject`, {
+      method: 'POST',
+      body: JSON.stringify({ rejection_reason }),
+    }),
+  updateStudentStatus: (studentId: string, status: string) =>
+    fetchJSON<{ status: string; message: string }>(`/admin/students/${studentId}/status`, {
+      method: 'POST',
+      body: JSON.stringify({ status }),
+    }),
+  getAdminResources: () => fetchJSON<AdminResourceItem[]>('/admin/resources'),
+  createAdminResource: (data: Partial<AdminResourceItem>) =>
+    fetchJSON<{ status: string; id: string; message: string }>('/admin/resources', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  deleteAdminResource: (resourceId: string) =>
+    fetchJSON<{ status: string; message: string }>(`/admin/resources/${resourceId}`, {
+      method: 'DELETE',
+    }),
+  getAdminAuditLogs: () => fetchJSON<AdminAuditLogItem[]>('/admin/audit-logs'),
 };

@@ -20,12 +20,19 @@ import {
   User,
   LogOut,
   ChevronRight,
-  Shield
+  Shield,
+  GitFork,
+  Cpu,
+  Flame
 } from 'lucide-react';
 import { LearnerProfile, ProgressOverview } from '../../types';
 
 export type DashboardTab = 
   | 'overview' 
+  | 'career-twin'
+  | 'skill-graph'
+  | 'project-recommendations'
+  | 'industry-trends'
   | 'skills' 
   | 'careers' 
   | 'learning' 
@@ -60,12 +67,21 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
   const sections = [
     {
-      category: 'Core Curriculum',
+      category: 'Signature Intelligence',
       items: [
         { id: 'overview' as DashboardTab, label: 'Overview', icon: <LayoutDashboard className="w-4 h-4" /> },
+        { id: 'career-twin' as DashboardTab, label: 'AI Career Twin', icon: <Sparkles className="w-4 h-4 text-[#35D9F2]" />, highlight: 'cyan' },
+        { id: 'skill-graph' as DashboardTab, label: 'Skill Prerequisite DAG', icon: <GitFork className="w-4 h-4" /> },
+        { id: 'project-recommendations' as DashboardTab, label: 'AI Project Engine', icon: <FolderGit2 className="w-4 h-4 text-[#C5F45B]" />, highlight: 'lime' },
+        { id: 'industry-trends' as DashboardTab, label: 'Industry Trends & Data', icon: <TrendingUp className="w-4 h-4" /> },
+      ]
+    },
+    {
+      category: 'Core Curriculum',
+      items: [
         { id: 'skills' as DashboardTab, label: 'Skill Profile & Gaps', icon: <Gauge className="w-4 h-4" /> },
         { id: 'careers' as DashboardTab, label: 'Career Explorer', icon: <Target className="w-4 h-4" /> },
-        { id: 'learning' as DashboardTab, label: 'Learning Center', icon: <BookOpen className="w-4 h-4" />, highlight: 'cyan' },
+        { id: 'learning' as DashboardTab, label: 'Learning Center', icon: <BookOpen className="w-4 h-4" /> },
         { id: 'roadmap' as DashboardTab, label: 'My Roadmap', icon: <Compass className="w-4 h-4" /> },
         { id: 'assessments' as DashboardTab, label: 'Adaptive Assessments', icon: <ClipboardCheck className="w-4 h-4" /> },
       ]
@@ -73,7 +89,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     {
       category: 'Practice & Career Labs',
       items: [
-        { id: 'coding-lab' as DashboardTab, label: 'Coding Practice Lab', icon: <Code2 className="w-4 h-4" />, highlight: 'lime' },
+        { id: 'coding-lab' as DashboardTab, label: 'Coding Practice Lab', icon: <Code2 className="w-4 h-4" /> },
         { id: 'project-studio' as DashboardTab, label: 'Project Studio', icon: <FolderGit2 className="w-4 h-4" /> },
         { id: 'interview-sim' as DashboardTab, label: 'Interview Simulator', icon: <Mic2 className="w-4 h-4" /> },
         { id: 'resume-analyzer' as DashboardTab, label: 'Resume & ATS Analyzer', icon: <FileSpreadsheet className="w-4 h-4" /> },

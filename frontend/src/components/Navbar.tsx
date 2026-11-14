@@ -4,8 +4,8 @@ import { Button } from './common/Button';
 import { UserResponse } from '../types';
 
 interface NavbarProps {
-  currentView: 'landing' | 'onboarding' | 'dashboard';
-  onNavigate: (view: 'landing' | 'onboarding' | 'dashboard') => void;
+  currentView: 'landing' | 'onboarding' | 'dashboard' | 'pending-approval' | 'admin';
+  onNavigate: (view: 'landing' | 'onboarding' | 'dashboard' | 'pending-approval' | 'admin') => void;
   onOpenSection?: (sectionId: string) => void;
   user: UserResponse | null;
   onOpenAuth: (mode?: 'login' | 'register') => void;
@@ -129,7 +129,21 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
           ) : (
             <div className="flex items-center gap-3">
-              {currentView !== 'dashboard' && (
+              {user.role === 'admin' && (
+                <button
+                  onClick={() => onNavigate(currentView === 'admin' ? 'dashboard' : 'admin')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-mono font-semibold transition-all ${
+                    currentView === 'admin'
+                      ? 'bg-[#35D9F2] text-black shadow-[0_0_15px_rgba(53,217,242,0.3)]'
+                      : 'bg-[#11171B] border border-[#35D9F2]/40 text-[#35D9F2] hover:bg-[#35D9F2]/10'
+                  }`}
+                >
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  <span>{currentView === 'admin' ? 'Student View' : 'Admin Portal'}</span>
+                </button>
+              )}
+
+              {user.role !== 'admin' && currentView !== 'dashboard' && (
                 <Button
                   onClick={() => onNavigate('dashboard')}
                   variant="primary"

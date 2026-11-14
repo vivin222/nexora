@@ -8,7 +8,7 @@ from app.database_expansion import run_database_expansion
 from app.data.seed_data import seed_database
 from app.data.seed_expansion import seed_expanded_features
 from app.routers import (
-    auth, profile, careers, skills, assessments, roadmap, progress, mentor, agents,
+    auth, admin, profile, careers, skills, assessments, roadmap, progress, mentor, agents,
     learning, coding_lab, project_studio, interview, resume, goals, achievements, opportunities
 )
 
@@ -48,6 +48,7 @@ app.add_middleware(
 
 # Mount API Routers under /api
 app.include_router(auth.router, prefix="/api")
+app.include_router(admin.router, prefix="/api")
 app.include_router(profile.router, prefix="/api")
 app.include_router(careers.router, prefix="/api")
 app.include_router(skills.router, prefix="/api")

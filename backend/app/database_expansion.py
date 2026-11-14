@@ -41,10 +41,41 @@ def run_database_expansion():
         _safe_add_column(cursor, "profiles", "resume_extracted_data", "TEXT DEFAULT '{}'")
 
         _safe_add_column(cursor, "learners", "is_demo", "INTEGER DEFAULT 0")
+        _safe_add_column(cursor, "learners", "role", "TEXT DEFAULT 'student'")
+        _safe_add_column(cursor, "learners", "status", "TEXT DEFAULT 'approved'")
+        _safe_add_column(cursor, "learners", "rejection_reason", "TEXT DEFAULT ''")
+        _safe_add_column(cursor, "learners", "education_level", "TEXT DEFAULT ''")
+        _safe_add_column(cursor, "learners", "institution", "TEXT DEFAULT ''")
+        _safe_add_column(cursor, "learners", "department", "TEXT DEFAULT ''")
+        _safe_add_column(cursor, "learners", "graduation_year", "TEXT DEFAULT ''")
 
-        # Mark demo learner explicitly
-        cursor.execute("UPDATE learners SET is_demo = 1 WHERE id = 'learner-alex-mercer'")
-        cursor.execute("UPDATE profiles SET onboarding_completed = 1 WHERE learner_id = 'learner-alex-mercer'")
+        # Admin Audit Logs Table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS admin_audit_logs (
+                id TEXT PRIMARY KEY,
+                admin_id TEXT NOT NULL,
+                admin_email TEXT NOT NULL,
+                action TEXT NOT NULL,
+                target_type TEXT NOT NULL,
+                target_id TEXT NOT NULL,
+                details TEXT DEFAULT '{}',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+        """)
+
+        # Ensure bootstrap administrator exists
+        cursor.execute("SELECT id FROM learners WHERE email = 'admin@nexora.ai'")
+        if not cursor.fetchone():
+            from app.services.security import hash_password
+            admin_id = "admin-sys-root"
+            cursor.execute("""
+                INSERT INTO learners (id, email, password_hash, full_name, headline, role, status, is_demo)
+                VALUES (?, 'admin@nexora.ai', ?, 'System Administrator', 'NEXORA Curriculum & Platform Admin', 'admin', 'approved', 0)
+            """, (admin_id, hash_password("AdminPassword2026!")))
+            cursor.execute("""
+                INSERT OR IGNORE INTO profiles (id, learner_id, target_career_id, onboarding_completed)
+                VALUES (?, ?, 'career-full-stack-developer', 1)
+            """, (str(uuid.uuid4()), admin_id))
 
         # 1. Learning Center: Courses
         cursor.execute("""

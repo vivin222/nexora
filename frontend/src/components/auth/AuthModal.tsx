@@ -23,6 +23,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [headline, setHeadline] = useState('');
+  const [educationLevel, setEducationLevel] = useState('Undergraduate');
+  const [institution, setInstitution] = useState('');
+  const [department, setDepartment] = useState('');
+  const [graduationYear, setGraduationYear] = useState('2026');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
@@ -42,9 +46,18 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         onSuccess(res.user, res.onboarding_completed);
         onClose();
       } else if (mode === 'register') {
-        const res = await api.register(email.trim(), password, fullName.trim(), headline.trim());
+        const res = await api.register({
+          email: email.trim(),
+          password,
+          full_name: fullName.trim(),
+          headline: headline.trim() || `${educationLevel} in ${department || 'Computer Science'}`,
+          education_level: educationLevel,
+          institution: institution.trim(),
+          department: department.trim(),
+          graduation_year: graduationYear.trim()
+        });
         localStorage.setItem('nexora_token', res.token);
-        onSuccess(res.user, false); // New users go to onboarding
+        onSuccess(res.user, false);
         onClose();
       } else if (mode === 'forgot') {
         const res = await api.forgotPassword(email.trim());
@@ -151,6 +164,58 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   className="w-full bg-[#11171B] border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-[#35D9F2]"
                 />
               </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-mono text-zinc-400 mb-1">DEGREE PROGRAM</label>
+                  <select
+                    value={educationLevel}
+                    onChange={e => setEducationLevel(e.target.value)}
+                    className="w-full bg-[#11171B] border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-[#35D9F2]"
+                  >
+                    <option value="Undergraduate">Undergraduate (B.Tech / BS)</option>
+                    <option value="Postgraduate">Postgraduate (MS / M.Tech)</option>
+                    <option value="Doctorate">Doctorate (PhD)</option>
+                    <option value="Associate">Associate Degree</option>
+                    <option value="Self-Taught">Self-Taught Professional</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-mono text-zinc-400 mb-1">GRADUATION YEAR</label>
+                  <input
+                    type="text"
+                    placeholder="2026"
+                    value={graduationYear}
+                    onChange={e => setGraduationYear(e.target.value)}
+                    className="w-full bg-[#11171B] border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-[#35D9F2]"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-mono text-zinc-400 mb-1">CAMPUS / UNIVERSITY *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Stanford University"
+                    value={institution}
+                    onChange={e => setInstitution(e.target.value)}
+                    className="w-full bg-[#11171B] border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-[#35D9F2]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-mono text-zinc-400 mb-1">DEPARTMENT *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Computer Science"
+                    value={department}
+                    onChange={e => setDepartment(e.target.value)}
+                    className="w-full bg-[#11171B] border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-[#35D9F2]"
+                  />
+                </div>
+              </div>
             </>
           )}
 
@@ -207,6 +272,24 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           >
             {loading ? 'Authenticating...' : mode === 'login' ? 'Sign In' : mode === 'register' ? 'Create Account & Start' : 'Send Reset Link'}
           </Button>
+
+          {mode === 'login' && (
+            <div className="pt-2 text-center">
+              <span className="text-[11px] text-zinc-500 font-mono">
+                Institutional Admin? Sign in with{' '}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEmail('admin@nexora.ai');
+                    setPassword('AdminPassword2026!');
+                  }}
+                  className="text-[#35D9F2] hover:underline"
+                >
+                  admin@nexora.ai
+                </button>
+              </span>
+            </div>
+          )}
 
           {mode === 'forgot' && (
             <button

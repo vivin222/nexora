@@ -167,6 +167,13 @@ export interface UserResponse {
   email: string;
   full_name: string;
   headline: string;
+  role?: 'student' | 'admin';
+  status?: 'pending' | 'approved' | 'rejected' | 'suspended' | 'inactive';
+  rejection_reason?: string;
+  education_level?: string;
+  institution?: string;
+  department?: string;
+  graduation_year?: string;
   onboarding_completed: boolean;
   is_demo: boolean;
 }
@@ -175,6 +182,60 @@ export interface AuthResponse {
   token: string;
   user: UserResponse;
   onboarding_completed: boolean;
+  status?: string;
+}
+
+export interface AdminStats {
+  total_students: number;
+  pending_registrations: number;
+  approved_students: number;
+  rejected_registrations: number;
+  suspended_students: number;
+  assessment_submissions: number;
+  skill_gap_distribution: Record<string, number>;
+  registration_trends: Array<{ date: string; count: number }>;
+}
+
+export interface AdminStudentItem {
+  id: string;
+  email: string;
+  full_name: string;
+  headline: string;
+  status: 'pending' | 'approved' | 'rejected' | 'suspended' | 'inactive';
+  role: 'student' | 'admin';
+  rejection_reason?: string;
+  education_level?: string;
+  institution?: string;
+  department?: string;
+  graduation_year?: string;
+  target_career_id?: string;
+  target_career_title?: string;
+  onboarding_completed: boolean;
+  created_at: string;
+}
+
+export interface AdminAuditLogItem {
+  id: string;
+  admin_id: string;
+  admin_email: string;
+  action: string;
+  target_type: string;
+  target_id: string;
+  details: any;
+  created_at: string;
+}
+
+export interface AdminResourceItem {
+  id: string;
+  skill_id: string;
+  skill_name?: string;
+  title: string;
+  url: string;
+  provider: string;
+  resource_type: string;
+  difficulty: string;
+  estimated_duration: string;
+  is_free: number | boolean;
 }
 
 export interface OnboardingSubmitPayload {

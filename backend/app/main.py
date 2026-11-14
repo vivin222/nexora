@@ -24,8 +24,8 @@ logger = logging.getLogger("nexora")
 async def lifespan(app: FastAPI):
     logger.info("Initializing NEXORA Database and Seeding Knowledge Graph...")
     init_db()
-    run_database_expansion()
     seed_database()
+    run_database_expansion()
     seed_expanded_features()
     logger.info("NEXORA Full Intelligence Platform Ready.")
     yield

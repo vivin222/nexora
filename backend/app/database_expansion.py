@@ -590,6 +590,14 @@ def _seed_canonical_knowledge_graph(cursor):
     ]
 
     for career_id, skill_id, weight, level, why in requirements:
+        # Guard against foreign key violations in case parents are missing
+        cursor.execute("SELECT 1 FROM career_roles WHERE id = ?", (career_id,))
+        if not cursor.fetchone():
+            continue
+        cursor.execute("SELECT 1 FROM skills WHERE id = ?", (skill_id,))
+        if not cursor.fetchone():
+            continue
+
         req_id = f"req-{career_id.replace('career-', '')}-{skill_id.replace('skill-', '')}"
         cursor.execute("""
             INSERT OR IGNORE INTO career_skill_requirements (id, career_id, skill_id, importance_weight, required_level, why_it_matters)

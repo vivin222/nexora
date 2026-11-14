@@ -1,6 +1,7 @@
 import logging
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.database import init_db
@@ -71,6 +72,14 @@ app.include_router(achievements.router, prefix="/api")
 app.include_router(opportunities.router, prefix="/api")
 app.include_router(missions.router, prefix="/api")
 app.include_router(simulator.router, prefix="/api")
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    logger.error(f"Internal server error processing {request.method} {request.url.path}: {exc}", exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "An internal server error occurred. Telemetry has been recorded."}
+    )
 
 @app.get("/api/health", tags=["System"])
 def health_check():

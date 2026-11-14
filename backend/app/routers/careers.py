@@ -1,4 +1,5 @@
 import json
+import time
 from fastapi import APIRouter, Depends, HTTPException
 from typing import Dict, Any, List
 from app.database import get_db
@@ -13,23 +14,40 @@ from app.services.career_matcher import evaluate_career_matches
 
 router = APIRouter(prefix="/careers", tags=["Career Intelligence"])
 
+_CAREERS_CACHE: Dict[str, Any] = {"data": None, "timestamp": 0.0}
+_CACHE_TTL_SECONDS = 30.0
+
 @router.get("")
 def list_careers() -> List[Dict[str, Any]]:
+    now = time.time()
+    if _CAREERS_CACHE["data"] is not None and (now - _CAREERS_CACHE["timestamp"]) < _CACHE_TTL_SECONDS:
+        return _CAREERS_CACHE["data"]
+
     with get_db() as conn:
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM career_roles ORDER BY title ASC")
         careers = [dict(c) for c in cursor.fetchall()]
 
-        for c in careers:
-            cursor.execute("""
-                SELECT csr.*, s.name as skill_name, s.category as skill_category
-                FROM career_skill_requirements csr
-                JOIN skills s ON csr.skill_id = s.id
-                WHERE csr.career_id = ?
-                ORDER BY csr.importance_weight DESC
-            """, (c["id"],))
-            c["requirements"] = [dict(r) for r in cursor.fetchall()]
+        # High-efficiency batch query: resolves N+1 query overhead in a single scan
+        cursor.execute("""
+            SELECT csr.*, s.name as skill_name, s.category as skill_category
+            FROM career_skill_requirements csr
+            JOIN skills s ON csr.skill_id = s.id
+            ORDER BY csr.importance_weight DESC
+        """)
+        all_reqs = cursor.fetchall()
+        reqs_by_career: Dict[str, List[Dict[str, Any]]] = {}
+        for r in all_reqs:
+            cid = r["career_id"]
+            if cid not in reqs_by_career:
+                reqs_by_career[cid] = []
+            reqs_by_career[cid].append(dict(r))
 
+        for c in careers:
+            c["requirements"] = reqs_by_career.get(c["id"], [])
+
+        _CAREERS_CACHE["data"] = careers
+        _CAREERS_CACHE["timestamp"] = now
         return careers
 
 @router.post("/discover", response_model=CareerDiscoveryResponse)

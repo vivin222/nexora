@@ -60,8 +60,28 @@ const resolveApiBase = (): string => {
 
 const API_BASE = resolveApiBase();
 
+// High-efficiency in-flight request deduplication & short-term read cache
+const inFlightRequests = new Map<string, Promise<any>>();
+const cacheStore = new Map<string, { data: any; expiry: number }>();
+
 async function fetchJSON<T>(endpoint: string, options?: RequestInit): Promise<T> {
+  const method = (options?.method || 'GET').toUpperCase();
   const token = localStorage.getItem('nexora_token');
+  const cacheKey = `${method}:${endpoint}:${token || 'anon'}`;
+
+  // Serve short-term cached read-only requests (e.g. skills, careers, static catalog)
+  if (method === 'GET') {
+    const cached = cacheStore.get(cacheKey);
+    if (cached && Date.now() < cached.expiry) {
+      return cached.data as T;
+    }
+
+    // In-flight request deduplication for concurrent identical GET requests
+    if (inFlightRequests.has(cacheKey)) {
+      return inFlightRequests.get(cacheKey) as Promise<T>;
+    }
+  }
+
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...(options?.headers as Record<string, string> || {}),
@@ -71,21 +91,44 @@ async function fetchJSON<T>(endpoint: string, options?: RequestInit): Promise<T>
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${API_BASE}${endpoint}`, {
-    ...options,
-    headers,
-  });
-
-  if (!response.ok) {
-    let errMsg = `API request failed with status ${response.status}`;
+  const executeRequest = async (): Promise<T> => {
     try {
-      const errData = await response.json();
-      if (errData.detail) errMsg = errData.detail;
-    } catch {}
-    throw new Error(errMsg);
+      const response = await fetch(`${API_BASE}${endpoint}`, {
+        ...options,
+        headers,
+      });
+
+      if (!response.ok) {
+        let errMsg = `API request failed with status ${response.status}`;
+        try {
+          const errData = await response.json();
+          if (errData.detail) errMsg = errData.detail;
+        } catch {}
+        throw new Error(errMsg);
+      }
+
+      const data = await response.json() as T;
+
+      // Cache short-lived catalog reads (15s)
+      if (method === 'GET' && (endpoint === '/skills' || endpoint === '/careers' || endpoint === '/learning/courses')) {
+        cacheStore.set(cacheKey, { data, expiry: Date.now() + 15000 });
+      }
+
+      return data;
+    } finally {
+      inFlightRequests.delete(cacheKey);
+    }
+  };
+
+  if (method === 'GET') {
+    const promise = executeRequest();
+    inFlightRequests.set(cacheKey, promise);
+    return promise;
   }
 
-  return response.json() as Promise<T>;
+  // Invalidate read cache on write mutations
+  cacheStore.clear();
+  return executeRequest();
 }
 
 export const api = {

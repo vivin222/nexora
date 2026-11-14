@@ -11,6 +11,10 @@ def get_connection() -> sqlite3.Connection:
     conn = sqlite3.connect(settings.DATABASE_PATH, timeout=20.0)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON;")
+    conn.execute("PRAGMA journal_mode = WAL;")
+    conn.execute("PRAGMA synchronous = NORMAL;")
+    conn.execute("PRAGMA cache_size = -64000;")
+    conn.execute("PRAGMA temp_store = MEMORY;")
     return conn
 
 @contextmanager
@@ -252,5 +256,20 @@ def init_db():
                 FOREIGN KEY (learner_id) REFERENCES learners(id) ON DELETE CASCADE
             );
         """)
+
+        # Performance Indexes for Sub-Millisecond Relational Lookups
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_learners_email ON learners(email);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_profiles_learner_id ON profiles(learner_id);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_learner_skills_learner_id ON learner_skills(learner_id);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_learner_skills_skill_id ON learner_skills(skill_id);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_career_skill_reqs_career ON career_skill_requirements(career_id);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_career_skill_reqs_skill ON career_skill_requirements(skill_id);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_assessments_skill_id ON assessments(skill_id);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_asmt_questions_asmt_id ON assessment_questions(assessment_id);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_asmt_results_learner_id ON assessment_results(learner_id);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_progress_records_learner_id ON progress_records(learner_id, created_at);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_agent_logs_learner_id ON agent_logs(learner_id, created_at);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_mentor_conv_learner_id ON mentor_conversations(learner_id, created_at);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_learning_resources_skill_id ON learning_resources(skill_id);")
 
         logger.info("Database initialized successfully.")

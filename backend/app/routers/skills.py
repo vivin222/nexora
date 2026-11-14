@@ -1,4 +1,5 @@
 import uuid
+import time
 from fastapi import APIRouter, Depends, HTTPException, Query
 from typing import Dict, Any, List, Optional
 from app.database import get_db
@@ -8,12 +9,22 @@ from app.services.orchestrator import orchestrator
 
 router = APIRouter(prefix="/skills", tags=["Skills & Gap Analysis"])
 
+_SKILLS_CACHE: Dict[str, Any] = {"data": None, "timestamp": 0.0}
+_SKILLS_CACHE_TTL = 30.0
+
 @router.get("")
 def list_skills() -> List[Dict[str, Any]]:
+    now = time.time()
+    if _SKILLS_CACHE["data"] is not None and (now - _SKILLS_CACHE["timestamp"]) < _SKILLS_CACHE_TTL:
+        return _SKILLS_CACHE["data"]
+
     with get_db() as conn:
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM skills ORDER BY category, name")
-        return [dict(s) for s in cursor.fetchall()]
+        data = [dict(s) for s in cursor.fetchall()]
+        _SKILLS_CACHE["data"] = data
+        _SKILLS_CACHE["timestamp"] = now
+        return data
 
 @router.get("/analysis")
 def get_skill_analysis(

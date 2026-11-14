@@ -488,6 +488,13 @@ def run_database_expansion():
         _seed_canonical_knowledge_graph(cursor)
         _seed_workplace_scenarios(cursor)
 
+        # High-Performance Indexes for Expanded Features
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_weekly_missions_learner ON weekly_missions(learner_id, status);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_workplace_scenarios_slug ON workplace_scenarios(role_slug);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_workplace_subs_learner ON workplace_scenario_submissions(learner_id, scenario_id);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_learner_achievements_learner ON learner_achievements(learner_id);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_weekly_goals_learner ON weekly_goals(learner_id);")
+
         print("Database expansion tables verified successfully.")
 
 def _seed_canonical_knowledge_graph(cursor):

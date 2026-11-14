@@ -36,7 +36,6 @@ services:
   - type: web
     name: nexora-web
     runtime: static
-    region: oregon
     plan: free
     branch: main
     rootDir: frontend

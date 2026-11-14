@@ -22,6 +22,7 @@ import { api } from '../../api/client';
 import { CareerReadinessReport, WeeklyGrowthReview, ActivityTimelineEvent } from '../../types';
 import { Badge } from '../common/Badge';
 import { Button } from '../common/Button';
+import { GraduationCapSymbol } from '../common/GraduationCapSymbol';
 
 interface CareerReadinessViewProps {
   onNavigateTab: (tab: any) => void;
@@ -125,12 +126,17 @@ export const CareerReadinessView: React.FC<CareerReadinessViewProps> = ({ onNavi
               </div>
             </div>
 
-            <div className="bg-[#11171B] border border-white/8 px-6 py-4 rounded-xl text-center shrink-0">
-              <div className="text-[10px] font-mono uppercase text-zinc-400">Readiness Index</div>
-              <div className="text-4xl font-black text-[#C5F45B] font-mono mt-0.5">
-                {report.readiness_score}%
+            <div className="bg-[#11171B] border border-white/8 px-6 py-4 rounded-xl text-center shrink-0 flex items-center gap-4">
+              <GraduationCapSymbol size={36} interactive={true} />
+              <div>
+                <div className="text-[10px] font-mono uppercase text-zinc-400">Readiness Index</div>
+                <div className="text-4xl font-black text-[#C5F45B] font-mono mt-0.5">
+                  {report.readiness_score}%
+                </div>
+                <div className="text-[10px] font-mono text-zinc-500 mt-0.5">
+                  {report.readiness_score >= 80 ? 'Graduation Eligible' : 'Market Benchmark: 80%'}
+                </div>
               </div>
-              <div className="text-[10px] font-mono text-zinc-500 mt-1">Weighted Verification</div>
             </div>
           </div>
 

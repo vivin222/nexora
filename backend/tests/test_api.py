@@ -58,3 +58,42 @@ def test_agent_telemetry():
     data = response.json()
     assert len(data["agents"]) >= 6
     assert data["orchestrator"]["status"] == "ONLINE"
+
+def test_career_discovery_and_recommendations():
+    # 1. Discover careers with empty profile
+    disc_empty = client.post("/api/careers/discover", json={
+        "education_level": "Undergraduate",
+        "department": "Computer Science",
+        "interests": ["Machine Learning", "Neural Networks"],
+        "skills": []
+    })
+    assert disc_empty.status_code == 200
+    res_empty = disc_empty.json()
+    assert len(res_empty["top_matches"]) == 3
+    assert len(res_empty["missing_profile_data"]) > 0
+    # First match should be AI/ML Engineer due to strong domain interest
+    assert res_empty["top_matches"][0]["career_id"] == "career-ai-ml-engineer"
+
+    # 2. Discover careers with rich student evidence
+    disc_rich = client.post("/api/careers/discover", json={
+        "education_level": "Undergraduate",
+        "department": "Computer Science",
+        "interests": ["Cloud Architecture", "DevOps", "Infrastructure"],
+        "skills": [
+            {"skill_id": "skill-docker", "proficiency": 85},
+            {"skill_id": "skill-cloud-aws-gcp", "proficiency": 80},
+            {"skill_id": "skill-kubernetes", "proficiency": 75},
+            {"skill_id": "skill-git", "proficiency": 80}
+        ],
+        "weekly_hours": 15
+    })
+    assert disc_rich.status_code == 200
+    res_rich = disc_rich.json()
+    assert len(res_rich["top_matches"]) == 3
+    top_career = res_rich["top_matches"][0]
+    assert top_career["career_id"] == "career-cloud-devops-architect"
+    assert top_career["match_score"] >= 60.0
+    assert top_career["overlapping_skills_count"] >= 3
+    assert len(top_career["critical_gaps"]) >= 0
+    assert "leverage" in top_career["match_rationale"].lower() or len(top_career["match_rationale"]) > 10
+

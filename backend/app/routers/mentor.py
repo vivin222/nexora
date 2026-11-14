@@ -103,3 +103,68 @@ def chat_with_mentor(
             "is_ai_live": ai_service.is_ai_live()
         }
     }
+
+@router.get("/proactive-advice")
+def get_proactive_advice(user_id: str = Depends(get_current_user_id)) -> Dict[str, Any]:
+    with get_db() as conn:
+        cursor = conn.cursor()
+        # Fetch profile
+        cursor.execute("SELECT l.full_name, p.target_career_id FROM learners l LEFT JOIN profiles p ON l.id = p.learner_id WHERE l.id = ?", (user_id,))
+        p = cursor.fetchone()
+        full_name = p["full_name"] if p and p["full_name"] else "Learner"
+        career_id = p["target_career_id"] if p and p["target_career_id"] else "career-full-stack-developer"
+
+        # Career title
+        cursor.execute("SELECT title FROM career_roles WHERE id = ?", (career_id,))
+        c = cursor.fetchone()
+        career_title = c["title"] if c else "Software Engineer"
+
+        # Top verified skill
+        cursor.execute("""
+            SELECT s.name as skill_name, ls.proficiency
+            FROM learner_skills ls
+            JOIN skills s ON ls.skill_id = s.id
+            WHERE ls.learner_id = ? AND ls.verified = 1
+            ORDER BY ls.proficiency DESC LIMIT 1
+        """, (user_id,))
+        top_skill = cursor.fetchone()
+        top_skill_name = top_skill["skill_name"] if top_skill else "Foundational Programming"
+
+        # Critical gap
+        cursor.execute("""
+            SELECT s.name as skill_name, csr.required_level, COALESCE(ls.proficiency, 20) as prof
+            FROM career_skill_requirements csr
+            JOIN skills s ON csr.skill_id = s.id
+            LEFT JOIN learner_skills ls ON ls.learner_id = ? AND ls.skill_id = csr.skill_id
+            WHERE csr.career_id = ?
+            ORDER BY (csr.required_level - (COALESCE(ls.proficiency, 20) / 20.0)) DESC LIMIT 1
+        """, (user_id, career_id))
+        gap = cursor.fetchone()
+        gap_name = gap["skill_name"] if gap else "System Architecture"
+
+        # Active mission
+        cursor.execute("""
+            SELECT objective, estimated_duration, action_type
+            FROM weekly_missions
+            WHERE learner_id = ? AND status = 'active'
+            ORDER BY created_at DESC LIMIT 1
+        """, (user_id,))
+        m = cursor.fetchone()
+
+        advice_text = (
+            f"Hi {full_name.split()[0]}! You've verified solid competency in {top_skill_name}. "
+            f"To accelerate your progress toward {career_title}, your highest-leverage priority right now is mastering {gap_name}. "
+            f"{'Your active sprint mission: ' + m['objective'] + ' (' + m['estimated_duration'] + ').' if m else 'Ready to launch a targeted practice sprint?'}"
+        )
+
+        return {
+            "mode": "proactive",
+            "career_target": career_title,
+            "top_strength": top_skill_name,
+            "critical_gap": gap_name,
+            "active_mission": dict(m) if m else None,
+            "proactive_advice": advice_text,
+            "suggested_action": "Launch Targeted Gap Sprint",
+            "generated_at": "Live Database Intelligence"
+        }
+

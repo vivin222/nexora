@@ -7,9 +7,14 @@ import {
   Award, 
   ArrowRight, 
   Sparkles, 
-  RotateCw,
-  BookOpen,
-  Check
+  RotateCw, 
+  BookOpen, 
+  Check,
+  AlertTriangle,
+  Code2,
+  Clock,
+  Flame,
+  ArrowLeft
 } from 'lucide-react';
 import { Assessment, AssessmentResult } from '../../types';
 import { api } from '../../api/client';
@@ -22,7 +27,9 @@ interface AssessmentViewProps {
 }
 
 export const AssessmentView: React.FC<AssessmentViewProps> = ({ onRefreshAll, onNavigateTab }) => {
+  const [activeTab, setActiveTab] = useState<'catalog' | 'smart-revision'>('catalog');
   const [assessments, setAssessments] = useState<Assessment[]>([]);
+  const [revisionFeed, setRevisionFeed] = useState<any[]>([]);
   const [activeAssessment, setActiveAssessment] = useState<Assessment | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadingDetails, setLoadingDetails] = useState(false);
@@ -35,10 +42,14 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({ onRefreshAll, on
   const fetchList = async () => {
     try {
       setLoading(true);
-      const data = await api.getAssessments();
-      setAssessments(data);
+      const [asmtData, revData] = await Promise.all([
+        api.getAssessments(),
+        api.getSmartRevisionFeed().catch(() => [])
+      ]);
+      setAssessments(asmtData);
+      setRevisionFeed(revData);
     } catch (err) {
-      console.error('Failed to fetch assessments:', err);
+      console.error('Failed to fetch assessments or smart revision:', err);
     } finally {
       setLoading(false);
     }
@@ -55,10 +66,25 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({ onRefreshAll, on
       setSelectedAnswers({});
       const full = await api.getAssessmentDetails(asmtId);
       setActiveAssessment(full);
+      setActiveTab('catalog');
     } catch (err) {
       console.error('Failed to load quiz details:', err);
     } finally {
       setLoadingDetails(false);
+    }
+  };
+
+  const handleAbandonQuiz = async () => {
+    if (!activeAssessment) return;
+    if (window.confirm("Abandon assessment? Incomplete attempts will be logged permanently in your audit history.")) {
+      try {
+        await api.abandonAssessment(activeAssessment.id);
+      } catch (err) {
+        console.error('Failed to log abandoned assessment:', err);
+      }
+      setActiveAssessment(null);
+      setResult(null);
+      fetchList();
     }
   };
 
@@ -98,7 +124,7 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({ onRefreshAll, on
       <div className="flex items-center justify-center h-64 text-zinc-500 font-mono text-sm">
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 border-2 border-[#35D9F2] border-t-transparent rounded-full animate-spin" />
-          <span>Loading Assessment Catalog...</span>
+          <span>Loading Assessment Engine & Smart Revision Telemetry...</span>
         </div>
       </div>
     );
@@ -113,10 +139,11 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({ onRefreshAll, on
         <div className="flex items-center justify-between pb-4 border-b border-white/8">
           <div>
             <button
-              onClick={() => { setActiveAssessment(null); setResult(null); }}
+              onClick={result ? () => { setActiveAssessment(null); setResult(null); } : handleAbandonQuiz}
               className="text-xs font-mono text-zinc-400 hover:text-white transition-colors cursor-pointer mb-2 flex items-center gap-1"
             >
-              ← Back to Assessments Catalog
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>{result ? 'Back to Assessments Catalog' : 'Exit Assessment (Logs Incomplete)'}</span>
             </button>
             <h1 className="text-2xl font-bold text-white">{activeAssessment.title}</h1>
             <p className="text-xs text-[#929CA3] mt-0.5">{activeAssessment.description}</p>
@@ -136,7 +163,7 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({ onRefreshAll, on
               <div>
                 <div className="flex items-center gap-2">
                   <Badge variant={result.passed ? 'lime' : 'amber'} size="md">
-                    {result.passed ? 'ASSESSMENT PASSED' : 'NEEDS PRACTICE'}
+                    {result.passed ? 'ASSESSMENT PASSED' : 'NEEDS PRACTICE (<60%)'}
                   </Badge>
                   <span className="text-xs font-mono text-zinc-400">
                     Verified Proficiency: <strong className="text-white">{result.new_proficiency}%</strong>
@@ -149,6 +176,16 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({ onRefreshAll, on
               </div>
 
               <div className="flex items-center gap-3">
+                {!result.passed && (
+                  <Button
+                    onClick={() => { setActiveAssessment(null); setActiveTab('smart-revision'); }}
+                    variant="primary"
+                    size="sm"
+                    className="bg-amber-400 text-black font-bold"
+                  >
+                    View Smart Revision
+                  </Button>
+                )}
                 <Button
                   onClick={() => onNavigateTab('roadmap')}
                   variant="primary"
@@ -198,54 +235,84 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({ onRefreshAll, on
                   {resultItem && (
                     <span className="shrink-0">
                       {resultItem.is_correct ? (
-                        <CheckCircle2 className="w-5 h-5 text-[#C5F45B]" />
+                        <span className="flex items-center gap-1 text-[#C5F45B] text-xs font-mono font-semibold">
+                          <CheckCircle2 className="w-4 h-4" /> Correct (+{q.weight}pt)
+                        </span>
                       ) : (
-                        <XCircle className="w-5 h-5 text-rose-400" />
+                        <span className="flex items-center gap-1 text-rose-400 text-xs font-mono font-semibold">
+                          <XCircle className="w-4 h-4" /> Incorrect (0pt)
+                        </span>
                       )}
                     </span>
                   )}
                 </div>
 
                 {/* Options List */}
-                <div className="space-y-2 pl-8">
+                <div className="space-y-2.5 mt-4">
                   {q.options.map((opt, optIdx) => {
-                    const isSelected = (userChoice === optIdx);
-                    let optionStyle = 'border-white/5 bg-[#11171B] hover:bg-[#161D22] text-zinc-300';
+                    const isSelected = userChoice === optIdx;
+                    const isCorrectAnswer = resultItem && resultItem.correct_option_index === optIdx;
+                    const isWrongSelection = resultItem && !resultItem.is_correct && isSelected;
 
+                    let optionBorder = 'border-white/5 hover:border-white/10 bg-[#11171B]';
                     if (resultItem) {
-                      if (optIdx === resultItem.correct_option_index) {
-                        optionStyle = 'border-[#C5F45B]/60 bg-[#C5F45B]/15 text-[#C5F45B] font-semibold';
-                      } else if (isSelected && !resultItem.is_correct) {
-                        optionStyle = 'border-rose-500/60 bg-rose-500/15 text-rose-200';
+                      if (isCorrectAnswer) {
+                        optionBorder = 'border-[#C5F45B] bg-[#C5F45B]/10 text-white';
+                      } else if (isWrongSelection) {
+                        optionBorder = 'border-rose-500 bg-rose-500/10 text-white';
+                      } else {
+                        optionBorder = 'border-white/5 opacity-40 bg-[#11171B]';
                       }
                     } else if (isSelected) {
-                      optionStyle = 'border-[#35D9F2] bg-[#35D9F2]/10 text-[#35D9F2] font-medium';
+                      optionBorder = 'border-[#35D9F2] bg-[#35D9F2]/10 text-white shadow-[0_0_15px_rgba(53,217,242,0.15)]';
                     }
 
                     return (
                       <div
                         key={optIdx}
                         onClick={() => !result && handleSelectOption(q.id, optIdx)}
-                        className={`p-3.5 rounded-xl border text-xs flex items-center gap-3 transition-colors ${optionStyle} ${
-                          result ? 'cursor-default' : 'cursor-pointer'
+                        className={`p-3.5 rounded-xl border text-xs sm:text-sm transition-all flex items-center justify-between ${optionBorder} ${
+                          !result ? 'cursor-pointer' : 'cursor-default'
                         }`}
                       >
-                        <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${
-                          isSelected ? 'border-[#35D9F2] bg-[#35D9F2]' : 'border-zinc-700'
-                        }`}>
-                          {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-[#050608]" />}
+                        <div className="flex items-center gap-3">
+                          <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${
+                            isSelected 
+                              ? (resultItem ? (resultItem.is_correct ? 'border-[#C5F45B] bg-[#C5F45B]' : 'border-rose-500 bg-rose-500') : 'border-[#35D9F2] bg-[#35D9F2]')
+                              : 'border-zinc-600'
+                          }`}>
+                            {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-black" />}
+                          </div>
+                          <span className={isSelected || isCorrectAnswer ? 'font-medium text-white' : 'text-zinc-300'}>
+                            {opt}
+                          </span>
                         </div>
-                        <span className="leading-relaxed">{opt}</span>
+
+                        {resultItem && isCorrectAnswer && (
+                          <span className="text-[10px] font-mono text-[#C5F45B] font-bold">
+                            CORRECT ANSWER
+                          </span>
+                        )}
+                        {resultItem && isWrongSelection && (
+                          <span className="text-[10px] font-mono text-rose-400 font-bold">
+                            YOUR SELECTION
+                          </span>
+                        )}
                       </div>
                     );
                   })}
                 </div>
 
-                {/* Question Explanation if graded */}
+                {/* Explanation on result view */}
                 {resultItem && (
-                  <div className="mt-4 ml-8 p-3.5 rounded-xl bg-[#050608] border border-white/5 text-xs text-zinc-300 font-mono space-y-1">
-                    <div className="text-zinc-500 font-bold uppercase text-[10px]">Technical Rationale:</div>
-                    <div>{resultItem.explanation}</div>
+                  <div className="mt-4 p-4 rounded-xl bg-[#11171B] border border-white/5 space-y-2">
+                    <div className="flex items-center gap-1.5 text-xs font-mono text-[#35D9F2]">
+                      <HelpCircle className="w-3.5 h-3.5" />
+                      <span>CONCEPTUAL RATIONALE & EXPLANATION</span>
+                    </div>
+                    <p className="text-xs text-zinc-300 leading-relaxed">
+                      {resultItem.explanation}
+                    </p>
                   </div>
                 )}
               </div>
@@ -253,100 +320,271 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({ onRefreshAll, on
           })}
         </div>
 
-        {/* Action Button */}
+        {/* Submit Quiz Action Bar */}
         {!result && (
-          <div className="flex justify-end pt-4">
-            <Button
-              onClick={handleSubmit}
-              disabled={submitting}
-              size="lg"
-              variant="primary"
-              icon={<Award className="w-5 h-5 ml-1" />}
-            >
-              {submitting ? 'Assessment Agent Grading...' : 'Submit & Recalibrate Skills'}
-            </Button>
+          <div className="bg-[#0B0F12] p-6 rounded-2xl border border-white/8 flex flex-col sm:flex-row items-center justify-between gap-4 sticky bottom-4 shadow-2xl backdrop-blur-md bg-opacity-95">
+            <div className="text-xs font-mono text-zinc-400">
+              Answered <strong className="text-white">{Object.keys(selectedAnswers).length}</strong> of{' '}
+              <strong className="text-white">{questions.length}</strong> questions
+            </div>
+
+            <div className="flex items-center gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleAbandonQuiz}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                onClick={handleSubmit}
+                disabled={submitting}
+                className="bg-[#35D9F2] text-black font-bold"
+              >
+                {submitting ? 'Evaluating Submission...' : 'Submit Assessment for Verification'}
+              </Button>
+            </div>
           </div>
         )}
       </div>
     );
   }
 
-  // View: Catalog List
+  // View: Main Assessment Catalog & Smart Revision Tabs
   return (
     <div className="space-y-8 animate-fadeIn">
-      <div className="pb-6 border-b border-white/8">
-        <div className="flex items-center gap-2 mb-1.5">
-          <Badge variant="cyan" size="sm">EMPIRICAL VERIFICATION</Badge>
-          <span className="text-xs font-mono text-zinc-500">• Assessment Agent DAG</span>
+      {/* Top Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-white/8">
+        <div>
+          <div className="flex items-center gap-2 mb-1.5">
+            <Badge variant="cyan" size="sm">EVALUATION SYSTEM</Badge>
+            <span className="text-xs font-mono text-zinc-500">• Objective Knowledge Verification</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+            Diagnostic Assessments & Smart Revision
+          </h1>
+          <p className="text-sm text-[#929CA3] mt-1">
+            Validate technical competencies, identify conceptual misconceptions, and access targeted micro-lessons.
+          </p>
         </div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-          Adaptive Skill Assessments
-        </h1>
-        <p className="text-sm text-[#929CA3] mt-1 max-w-2xl leading-relaxed">
-          Taking an assessment verifies your conceptual mastery against real engineering standards. 
-          Your results directly update verified skill proficiency, triggering automatic recalibration across the roadmap.
-        </p>
+
+        {/* Tab Switcher */}
+        <div className="flex items-center gap-1.5 bg-[#0B0F12] p-1.5 rounded-xl border border-white/8 self-start sm:self-auto">
+          <button
+            onClick={() => setActiveTab('catalog')}
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              activeTab === 'catalog'
+                ? 'bg-[#161D22] text-[#35D9F2] border border-[#35D9F2]/30 shadow-sm'
+                : 'text-zinc-400 hover:text-white'
+            }`}
+          >
+            Assessments ({assessments.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('smart-revision')}
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              activeTab === 'smart-revision'
+                ? 'bg-[#161D22] text-amber-300 border border-amber-400/30 shadow-sm'
+                : 'text-zinc-400 hover:text-white'
+            }`}
+          >
+            <span>Smart Revision Focus</span>
+            {revisionFeed.length > 0 && (
+              <span className="w-4 h-4 rounded-full bg-amber-400 text-black text-[10px] font-bold flex items-center justify-center">
+                {revisionFeed.length}
+              </span>
+            )}
+          </button>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {assessments.map((asmt) => {
-          const hasAttempted = asmt.last_result !== null && asmt.last_result !== undefined;
-
-          return (
-            <div
-              key={asmt.id}
-              className="bg-[#0B0F12] p-6 rounded-2xl border border-white/8 hover:border-[#35D9F2]/30 transition-all flex flex-col justify-between shadow-lg"
-            >
-              <div className="space-y-3">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <span className="text-xs font-mono text-[#35D9F2] uppercase tracking-wider">
-                      {asmt.skill_name || 'Core Engineering'}
-                    </span>
-                    <h3 className="text-lg font-bold text-white mt-0.5">{asmt.title}</h3>
-                  </div>
-                  <span className="text-xs font-mono text-zinc-400 bg-[#11171B] px-2.5 py-1 rounded-lg border border-white/5">
-                    {asmt.difficulty}
-                  </span>
-                </div>
-
-                <p className="text-xs text-zinc-300 leading-relaxed">
-                  {asmt.description}
-                </p>
-
-                <div className="flex items-center gap-4 text-xs font-mono text-zinc-400 pt-1">
-                  <span>{asmt.question_count || 5} Questions</span>
-                  <span>•</span>
-                  <span>~10 mins</span>
-                </div>
-
-                {hasAttempted && (
-                  <div className="p-3 rounded-lg bg-[#11171B] border border-white/5 flex items-center justify-between text-xs font-mono">
-                    <span className="text-zinc-400">Last Attempt:</span>
-                    <span className={asmt.last_result?.passed ? 'text-[#C5F45B] font-bold' : 'text-amber-400 font-bold'}>
-                      {asmt.last_result?.percentage}% ({asmt.last_result?.passed ? 'Verified' : 'Retake Advised'})
-                    </span>
-                  </div>
-                )}
-              </div>
-
-              <div className="mt-6 pt-4 border-t border-white/5 flex items-center justify-between">
-                <span className="text-xs text-zinc-500 font-mono">
-                  Feedback Loop: Active
-                </span>
-                <Button
-                  onClick={() => handleStartQuiz(asmt.id)}
-                  variant="primary"
-                  size="sm"
-                  icon={<ClipboardCheck className="w-4 h-4" />}
-                >
-                  {hasAttempted ? 'Retake Assessment' : 'Start Assessment'}
-                </Button>
-              </div>
+      {/* SMART REVISION FOCUS VIEW */}
+      {activeTab === 'smart-revision' && (
+        <div className="space-y-6">
+          <div className="bg-[#161D22] p-5 rounded-2xl border border-amber-400/30 space-y-2">
+            <div className="flex items-center gap-2 text-amber-300 font-mono text-xs font-bold uppercase">
+              <AlertTriangle className="w-4 h-4" />
+              <span>Targeted Remediation Queue (&lt;60% Proficiency or Misconceptions)</span>
             </div>
-          );
-        })}
-      </div>
+            <p className="text-xs text-zinc-300 leading-relaxed">
+              When an assessment score reveals conceptual deficits, NEXORA automatically isolates the misconception and generates targeted micro-lessons and algorithmic practice before re-assessment.
+            </p>
+          </div>
+
+          {revisionFeed.length === 0 ? (
+            <div className="bg-[#0B0F12] border border-white/8 rounded-2xl p-12 text-center text-zinc-400 space-y-3">
+              <CheckCircle2 className="w-10 h-10 text-[#C5F45B] mx-auto" />
+              <h3 className="text-base font-bold text-white">No Critical Revision Deficits Detected</h3>
+              <p className="text-xs text-zinc-500 max-w-md mx-auto">
+                All completed assessments are above 60% with zero unresolved misconceptions. Continue challenging yourself in the catalog!
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {revisionFeed.map((rev, idx) => (
+                <div key={idx} className="bg-[#0B0F12] border border-amber-400/20 rounded-2xl p-6 space-y-5 flex flex-col justify-between">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <Badge variant="amber" size="sm">REVISION PRIORITY</Badge>
+                      <span className="text-xs font-mono text-amber-400 font-bold">
+                        Last Score: {rev.last_score}%
+                      </span>
+                    </div>
+
+                    <h3 className="text-base font-bold text-white">
+                      {rev.skill_name} Refresher
+                    </h3>
+                    <div className="text-xs text-zinc-400">
+                      From Assessment: <span className="text-zinc-200">{rev.assessment_title}</span>
+                    </div>
+
+                    {/* Identified Misconceptions */}
+                    {rev.misconceptions && rev.misconceptions.length > 0 && (
+                      <div className="p-3.5 rounded-xl bg-[#050608] border border-white/5 space-y-2">
+                        <span className="text-[10px] font-mono text-amber-300 uppercase block font-semibold">
+                          Identified Misconception:
+                        </span>
+                        {rev.misconceptions.map((m: any, mIdx: number) => (
+                          <p key={mIdx} className="text-[11px] text-zinc-300 leading-relaxed">
+                            {m.misconception}
+                          </p>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Targeted Micro-Lesson */}
+                    {rev.recommended_micro_lesson && (
+                      <div className="p-3.5 rounded-xl bg-[#11171B] border border-white/5 flex items-center justify-between">
+                        <div className="space-y-0.5">
+                          <span className="text-[10px] font-mono text-[#35D9F2] uppercase block">
+                            Targeted Micro-Lesson ({rev.recommended_micro_lesson.estimated_minutes}m)
+                          </span>
+                          <span className="text-xs font-bold text-white">
+                            {rev.recommended_micro_lesson.title}
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => onNavigateTab('learning')}
+                          className="text-xs font-mono text-[#35D9F2] hover:underline flex items-center gap-1 font-semibold"
+                        >
+                          <span>Review</span>
+                          <ArrowRight className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Targeted Algorithmic Practice */}
+                    {rev.recommended_practice_challenge && (
+                      <div className="p-3.5 rounded-xl bg-[#11171B] border border-white/5 flex items-center justify-between">
+                        <div className="space-y-0.5">
+                          <span className="text-[10px] font-mono text-[#C5F45B] uppercase block">
+                            Refresher Challenge ({rev.recommended_practice_challenge.difficulty})
+                          </span>
+                          <span className="text-xs font-bold text-white">
+                            {rev.recommended_practice_challenge.title}
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => onNavigateTab('coding-lab')}
+                          className="text-xs font-mono text-[#C5F45B] hover:underline flex items-center gap-1 font-semibold"
+                        >
+                          <span>Solve</span>
+                          <ArrowRight className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Re-Assessment Trigger */}
+                  <div className="pt-3 border-t border-white/5 flex items-center justify-between">
+                    <span className="text-[11px] font-mono text-zinc-500">
+                      Est. 15 mins to master
+                    </span>
+                    <Button
+                      onClick={() => handleStartQuiz(rev.assessment_id)}
+                      size="sm"
+                      className="bg-[#35D9F2] text-black font-bold flex items-center gap-1.5"
+                    >
+                      <RotateCw className="w-3.5 h-3.5" />
+                      <span>Take Re-Assessment</span>
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* CATALOG VIEW */}
+      {activeTab === 'catalog' && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {assessments.map(asmt => {
+            const hasTaken = asmt.last_result !== null && asmt.last_result !== undefined;
+            const passed = hasTaken && asmt.last_result?.passed;
+            const score = hasTaken ? asmt.last_result?.percentage : null;
+
+            return (
+              <div 
+                key={asmt.id} 
+                className="bg-[#0B0F12] border border-white/8 rounded-2xl p-6 flex flex-col justify-between hover:border-white/20 transition-all shadow-lg hover:shadow-2xl"
+              >
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-white/5 text-zinc-400">
+                      {asmt.skill_category}
+                    </span>
+                    {hasTaken ? (
+                      <span className={`text-xs font-mono font-bold flex items-center gap-1 ${
+                        passed ? 'text-[#C5F45B]' : 'text-amber-400'
+                      }`}>
+                        {passed ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : '·'}
+                        {score}%
+                      </span>
+                    ) : (
+                      <span className="text-[10px] font-mono text-zinc-500">UNTESTED</span>
+                    )}
+                  </div>
+
+                  <h3 className="text-base font-bold text-white leading-snug">
+                    {asmt.title}
+                  </h3>
+
+                  <p className="text-xs text-[#929CA3] line-clamp-2 leading-relaxed">
+                    {asmt.description}
+                  </p>
+
+                  <div className="flex items-center gap-4 text-xs font-mono text-zinc-500 pt-1">
+                    <span>{asmt.question_count} Questions</span>
+                    <span>•</span>
+                    <span>Skill: {asmt.skill_name}</span>
+                  </div>
+                </div>
+
+                <div className="pt-6 border-t border-white/5 mt-6 flex items-center justify-between">
+                  {hasTaken ? (
+                    <Badge variant={passed ? 'lime' : 'amber'} size="sm">
+                      {passed ? 'VERIFIED' : 'DEFICIT IDENTIFIED'}
+                    </Badge>
+                  ) : (
+                    <span className="text-xs text-zinc-500 font-mono">15-20 mins</span>
+                  )}
+
+                  <Button
+                    onClick={() => handleStartQuiz(asmt.id)}
+                    variant={hasTaken ? 'outline' : 'primary'}
+                    size="sm"
+                    className={!hasTaken ? 'bg-[#35D9F2] text-black font-bold' : ''}
+                  >
+                    {hasTaken ? 'Retake Quiz' : 'Start Assessment'}
+                  </Button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 };

@@ -31,12 +31,34 @@ import {
   ActivityTimelineEvent,
   CareerReadinessReport,
   WeeklyGrowthReview,
-  AdminPlatformHealth
+  AdminPlatformHealth,
+  CareerDiscoveryResponse,
+  CareerDiscoveryPayload,
+  CareerMatchItem,
+  WeeklyMissionsResponse,
+  WorkplaceScenario,
+  WorkplaceScenarioSubmissionResult
 } from '../types';
 
-const API_BASE = (import.meta as any).env?.VITE_API_URL 
-  ? `${(import.meta as any).env.VITE_API_URL}/api` 
-  : '/api';
+const resolveApiBase = (): string => {
+  const envUrl = ((import.meta as any).env?.VITE_API_URL || '').trim();
+  
+  // If explicitly configured with valid backend URL (ignoring legacy broken URL)
+  if (envUrl && !envUrl.includes('nexora-api.onrender.com')) {
+    const clean = envUrl.replace(/\/+$/, '');
+    return clean.endsWith('/api') ? clean : `${clean}/api`;
+  }
+
+  // Auto-detect Render deployment: route directly to live backend web service
+  if (typeof window !== 'undefined' && window.location.hostname.includes('onrender.com')) {
+    return 'https://nexora-omw4.onrender.com/api';
+  }
+
+  // Fallback for local development
+  return envUrl ? `${envUrl.replace(/\/+$/, '')}/api` : '/api';
+};
+
+const API_BASE = resolveApiBase();
 
 async function fetchJSON<T>(endpoint: string, options?: RequestInit): Promise<T> {
   const token = localStorage.getItem('nexora_token');
@@ -145,6 +167,12 @@ export const api = {
   // Careers
   getCareers: () => fetchJSON<CareerRole[]>('/careers'),
   getCareerDetails: (id: string) => fetchJSON<CareerRole>(`/careers/${id}`),
+  discoverCareers: (payload: CareerDiscoveryPayload) =>
+    fetchJSON<CareerDiscoveryResponse>('/careers/discover', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  getCareerRecommendations: () => fetchJSON<CareerDiscoveryResponse>('/careers/recommendations'),
   selectCareer: (careerId: string) =>
     fetchJSON<{ status: string; message: string; orchestration: any }>('/careers/select', {
       method: 'POST',
@@ -338,4 +366,37 @@ export const api = {
     }),
   getAdminAuditLogs: () => fetchJSON<AdminAuditLogItem[]>('/admin/audit-logs'),
   getPlatformHealth: () => fetchJSON<AdminPlatformHealth>('/admin/platform-health'),
+
+  // 10. AI Weekly Missions
+  getWeeklyMissions: () => fetchJSON<WeeklyMissionsResponse>('/missions'),
+  verifyMission: (missionId: string) =>
+    fetchJSON<{ verified: boolean; status: string; message: string; evidence_summary?: string }>(`/missions/${missionId}/verify`, {
+      method: 'POST',
+    }),
+
+  // Smart Revision & Assessment Incomplete Logging
+  getSmartRevisionFeed: () => fetchJSON<any[]>('/assessments/smart-revision/feed'),
+  abandonAssessment: (assessmentId: string) =>
+    fetchJSON<{ status: string; message: string }>(`/assessments/${assessmentId}/abandon`, {
+      method: 'POST',
+    }),
+
+  // Proactive Mentor Advice
+  getProactiveMentorAdvice: () => fetchJSON<any>('/mentor/proactive-advice'),
+
+  // 11. Workplace Career Simulator
+  getWorkplaceScenarios: (role?: string) =>
+    fetchJSON<WorkplaceScenario[]>(role ? `/simulator/scenarios?role=${role}` : '/simulator/scenarios'),
+  getWorkplaceScenarioDetail: (scenarioId: string) =>
+    fetchJSON<WorkplaceScenario>(`/simulator/scenarios/${scenarioId}`),
+  submitWorkplaceScenario: (scenarioId: string, selectedAction: string, rationaleText: string) =>
+    fetchJSON<WorkplaceScenarioSubmissionResult>('/simulator/submit', {
+      method: 'POST',
+      body: JSON.stringify({
+        scenario_id: scenarioId,
+        selected_action: selectedAction,
+        rationale_text: rationaleText,
+      }),
+    }),
+  getWorkplaceHistory: () => fetchJSON<any[]>('/simulator/history'),
 };

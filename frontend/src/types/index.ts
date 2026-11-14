@@ -36,6 +36,63 @@ export interface CareerRole {
   requirements?: CareerRequirement[];
 }
 
+export interface CareerMatchItem {
+  career_id: string;
+  slug: string;
+  title: string;
+  category: string;
+  description: string;
+  average_salary: string;
+  growth_outlook: string;
+  difficulty_level: string;
+  match_score: number;
+  fit_level: string;
+  skill_matrix_score: number;
+  interest_alignment_score: number;
+  overlapping_skills: Array<{
+    skill_id: string;
+    skill_name: string;
+    current_level: number;
+    required_level: number;
+  }>;
+  critical_gaps: Array<{
+    skill_id: string;
+    skill_name: string;
+    current_level: number;
+    required_level: number;
+    gap_percentage: number;
+    importance_weight: number;
+    why_it_matters?: string;
+  }>;
+  overlapping_skills_count: number;
+  critical_gaps_count: number;
+  estimated_weeks: number;
+  match_rationale: string;
+  is_active_target?: boolean;
+}
+
+export interface CareerDiscoveryResponse {
+  status: string;
+  top_matches: CareerMatchItem[];
+  all_matches: CareerMatchItem[];
+  missing_profile_data: string[];
+  total_evaluated: number;
+}
+
+export interface CareerDiscoveryPayload {
+  education_level?: string;
+  department?: string;
+  academic_year?: string;
+  institution?: string;
+  interests?: string[];
+  skills?: Array<{ skill_id: string; proficiency: number }>;
+  projects?: Array<{ title: string; tech: string; description: string }>;
+  certifications?: string[];
+  weekly_hours?: number;
+  work_preference?: string;
+  dream_roles?: string;
+}
+
 export interface DetailedGap {
   skill_id: string;
   skill_name: string;
@@ -327,6 +384,35 @@ export interface ProgressOverview {
     new_value: number;
     created_at: string;
   }>;
+  learning_streak?: {
+    active_streak_days: number;
+    longest_streak_days: number;
+    week_dots: Array<{
+      day: string;
+      day_short: string;
+      date: string;
+      active: boolean;
+      is_today?: boolean;
+    }>;
+    today_active: boolean;
+    streak_freeze_available: boolean;
+    recovery_mission: {
+      title: string;
+      estimated_minutes: number;
+      target_tab: string;
+    };
+    qualifying_actions: string[];
+  };
+  next_best_action?: {
+    task_title: string;
+    focus_skill: string;
+    direct_rationale: string;
+    estimated_time: string;
+    action_type: string;
+    target_tab: string;
+    target_id: string;
+    impact_badge: string;
+  };
 }
 
 // Expanded Feature Interfaces
@@ -585,3 +671,64 @@ export interface AdminPlatformHealth {
   ai_agent_status: string;
   model_version: string;
 }
+
+export interface WeeklyMission {
+  id: string;
+  learner_id: string;
+  objective: string;
+  estimated_duration: string;
+  difficulty: string;
+  target_skill_id: string;
+  target_skill_name: string;
+  completion_criteria: string;
+  action_type: 'coding_lab' | 'lesson' | 'project' | 'simulator';
+  action_target_slug: string;
+  status: 'active' | 'completed';
+  completed_at?: string;
+  evidence_summary?: string;
+  created_at: string;
+}
+
+export interface WeeklyMissionsResponse {
+  missions: WeeklyMission[];
+  weekly_hours_allocated: number;
+  total_missions: number;
+  completed_missions: number;
+  completion_percentage: number;
+}
+
+export interface WorkplaceScenarioOption {
+  id: string;
+  title: string;
+  description: string;
+}
+
+export interface WorkplaceScenario {
+  id: string;
+  role_slug: string;
+  role_title: string;
+  title: string;
+  context_markdown: string;
+  evidence_data: string;
+  technical_challenge: string;
+  options: WorkplaceScenarioOption[];
+  difficulty: string;
+  target_skill_id: string;
+  latest_submission?: {
+    score: number;
+    selected_action: string;
+    created_at: string;
+  } | null;
+}
+
+export interface WorkplaceScenarioSubmissionResult {
+  submission_id: string;
+  scenario_id: string;
+  score: number;
+  passed: boolean;
+  feedback: string;
+  competency_growth: string;
+  optimal_action: string;
+  target_skill_id: string;
+}
+

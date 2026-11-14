@@ -46,6 +46,10 @@ class Settings:
         "http://127.0.0.1:3000",
         "http://localhost:8000",
         "http://127.0.0.1:8000",
+        "https://nexora-web-9bi2.onrender.com",
+        "https://nexora-web.onrender.com",
+        "https://nexora-omw4.onrender.com",
+        "https://nexora-api.onrender.com",
     ] + ([os.getenv("FRONTEND_URL")] if os.getenv("FRONTEND_URL") else [])
 
 settings = Settings()

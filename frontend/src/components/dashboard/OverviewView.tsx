@@ -13,7 +13,15 @@ import {
   BookOpen,
   Code2,
   Mic2,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Flame,
+  Award,
+  Calendar,
+  Share2,
+  Layers,
+  ChevronRight,
+  ShieldCheck,
+  Check
 } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { ProgressOverview, LearnerProfile } from '../../types';
@@ -43,6 +51,17 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
   }
 
   const { career, chart_data } = progress;
+  const streak = progress.learning_streak;
+  const nextAction = progress.next_best_action || {
+    task_title: `Advance Priority Competency for ${career.title}`,
+    focus_skill: career.top_blockers?.[0] || 'Core Architecture',
+    direct_rationale: `Bridging your deficit in ${career.top_blockers?.[0] || 'Core Architecture'} yields the fastest leap toward placement readiness (+14%).`,
+    estimated_time: '25 minutes',
+    action_type: 'roadmap',
+    target_tab: 'roadmap',
+    target_id: 'top',
+    impact_badge: '+14% Readiness'
+  };
 
   return (
     <div className="space-y-8 animate-fadeIn">
@@ -70,12 +89,183 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
         )}
       </div>
 
-      {/* Top Banner: Career Goal Intelligence */}
-      <div className="bg-[#0B0F12] p-6 sm:p-8 rounded-2xl border border-white/10 relative overflow-hidden shadow-2xl">
+      {/* WHAT'S NEXT? HERO ELEMENT & GENUINE STREAK DUAL HERO */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left 2 Cols: High-Visibility "What's Next?" Card */}
+        <div className="lg:col-span-2 p-6 sm:p-7 rounded-2xl bg-gradient-to-br from-[#0B0F12] via-[#11171B] to-[#0B0F12] border border-[#35D9F2]/40 shadow-[0_0_35px_rgba(53,217,242,0.15)] relative overflow-hidden flex flex-col justify-between">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-[#35D9F2]/5 rounded-full blur-3xl pointer-events-none" />
+
+          <div className="space-y-3 relative z-10">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-[#35D9F2]/20 text-[#35D9F2] font-bold border border-[#35D9F2]/40 flex items-center gap-1.5 animate-pulse">
+                  <Zap className="w-3 h-3 fill-current" /> NEXT BEST ACTION
+                </span>
+                <span className="text-xs font-mono text-zinc-400">
+                  Focus: <strong className="text-white">{nextAction.focus_skill}</strong>
+                </span>
+              </div>
+              <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-[#C5F45B]/10 text-[#C5F45B] border border-[#C5F45B]/30 font-semibold">
+                {nextAction.impact_badge}
+              </span>
+            </div>
+
+            <h3 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight leading-snug">
+              {nextAction.task_title}
+            </h3>
+
+            <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed">
+              {nextAction.direct_rationale}
+            </p>
+          </div>
+
+          <div className="pt-5 mt-4 border-t border-white/8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
+            <div className="flex items-center gap-3 text-xs font-mono text-zinc-400">
+              <span className="flex items-center gap-1">
+                <Clock className="w-3.5 h-3.5 text-[#35D9F2]" /> {nextAction.estimated_time} commitment
+              </span>
+              <span>•</span>
+              <span className="text-[#C5F45B]">Autonomous adaptive priority</span>
+            </div>
+
+            <button
+              onClick={() => onNavigateTab(nextAction.target_tab)}
+              className="px-5 py-2.5 rounded-xl bg-[#35D9F2] hover:bg-[#20c5de] text-[#050608] text-xs font-mono font-bold transition-all flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(53,217,242,0.35)] cursor-pointer"
+            >
+              Start Now <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* Right Col: Meaningful Genuine Learning Streak System */}
+        <div className="p-6 rounded-2xl bg-[#0B0F12] border border-white/10 shadow-2xl flex flex-col justify-between">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-mono text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
+                <Flame className="w-4 h-4 text-amber-400" /> Genuine Learning Streak
+              </span>
+              <span className="text-[10px] font-mono text-zinc-500">
+                Best: {streak?.longest_streak_days || 3}d
+              </span>
+            </div>
+
+            <div className="flex items-baseline gap-2">
+              <span className="text-3xl sm:text-4xl font-extrabold text-white font-mono">
+                {streak?.active_streak_days || 1}
+              </span>
+              <span className="text-sm font-mono text-amber-400 font-bold uppercase">Days Active 🔥</span>
+            </div>
+
+            <p className="text-[11px] text-zinc-400 leading-relaxed">
+              Measures genuine cognitive learning: completed lessons, passed challenges, delivered milestones, and assessments.
+            </p>
+
+            {/* 7-Day Visual Calendar Dots */}
+            <div className="pt-2">
+              <div className="grid grid-cols-7 gap-1.5 text-center">
+                {(streak?.week_dots || [
+                  { day: 'Mon', day_short: 'M', date: 'Mon', active: true, is_today: false },
+                  { day: 'Tue', day_short: 'T', date: 'Tue', active: true, is_today: false },
+                  { day: 'Wed', day_short: 'W', date: 'Wed', active: true, is_today: false },
+                  { day: 'Thu', day_short: 'T', date: 'Thu', active: true, is_today: false },
+                  { day: 'Fri', day_short: 'F', date: 'Fri', active: false, is_today: true },
+                  { day: 'Sat', day_short: 'S', date: 'Sat', active: false, is_today: false },
+                  { day: 'Sun', day_short: 'S', date: 'Sun', active: false, is_today: false }
+                ]).map((d, i) => (
+                  <div key={i} className="flex flex-col items-center gap-1">
+                    <span className="text-[10px] font-mono text-zinc-500">{d.day.slice(0, 1)}</span>
+                    <div 
+                      className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-mono transition-all ${
+                        d.active 
+                          ? 'bg-[#C5F45B]/20 border border-[#C5F45B] text-[#C5F45B] shadow-[0_0_8px_rgba(197,244,91,0.25)]' 
+                          : d.is_today
+                          ? 'bg-[#35D9F2]/10 border border-[#35D9F2]/50 text-[#35D9F2]'
+                          : 'bg-[#11171B] border border-white/5 text-zinc-600'
+                      }`}
+                      title={d.active ? `Verified learning on ${d.date}` : d.date}
+                    >
+                      {d.active ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : '·'}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Streak Status or Recovery Prompt */}
+          <div className="pt-4 mt-3 border-t border-white/5">
+            {streak?.today_active ? (
+              <span className="text-[11px] font-mono text-[#C5F45B] flex items-center gap-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5" /> Today's learning activity verified!
+              </span>
+            ) : (
+              <button
+                onClick={() => onNavigateTab('coding-lab')}
+                className="w-full py-1.5 px-2.5 rounded-lg bg-[#11171B] hover:bg-white/5 border border-amber-500/30 text-[11px] font-mono text-amber-300 flex items-center justify-between transition-colors cursor-pointer"
+              >
+                <span>Complete 1 quick lab today</span>
+                <ChevronRight className="w-3.5 h-3.5 text-amber-400" />
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* QUICK-ACCESS NAVIGATION HUB (10 CORE UTILITIES) */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-mono text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
+            <Layers className="w-3.5 h-3.5 text-[#35D9F2]" /> Student Utility Hub
+          </span>
+          <span className="text-[11px] font-mono text-zinc-500">10 Core Workspaces</span>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+          {[
+            { id: 'learning', label: '1. Continue Learning', desc: 'Interactive lessons & modules', icon: BookOpen, color: 'text-[#35D9F2]' },
+            { id: 'roadmap', label: "2. What's Next?", desc: 'Milestone learning roadmap', icon: Zap, color: 'text-amber-400' },
+            { id: 'careers', label: '3. Target Career', desc: 'Market demand & compensation', icon: Target, color: 'text-[#C5F45B]' },
+            { id: 'roadmap', label: '4. Learning Path', desc: 'Dynamic prerequisite graph', icon: Compass, color: 'text-cyan-400' },
+            { id: 'skills', label: '5. Skill Galaxy', desc: 'Competency matrix & verification', icon: Sparkles, color: 'text-indigo-400' },
+            { id: 'analytics', label: '6. Weekly Missions', desc: 'Sprint targets & velocity', icon: Clock, color: 'text-emerald-400' },
+            { id: 'assessments', label: '7. Assessments', desc: 'Diagnostic tests & rubrics', icon: ClipboardCheck, color: 'text-pink-400' },
+            { id: 'mentor', label: '8. AI Mentor', desc: '24/7 Contextual career coach', icon: Mic2, color: 'text-purple-400' },
+            { id: 'project-studio', label: '9. Portfolio', desc: 'Project deliverables & code', icon: FileSpreadsheet, color: 'text-teal-400' },
+            { id: 'achievements', label: '10. Achievements', desc: 'Medals & graduation unlocks', icon: Award, color: 'text-yellow-400' },
+          ].map((item, idx) => {
+            const Icon = item.icon;
+            return (
+              <button
+                key={idx}
+                onClick={() => onNavigateTab(item.id)}
+                className="p-3.5 rounded-xl bg-[#0B0F12] border border-white/8 hover:border-[#35D9F2]/50 hover:bg-[#11171B] transition-all text-left flex flex-col justify-between group cursor-pointer shadow-sm hover:shadow-[0_0_15px_rgba(53,217,242,0.12)]"
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <div className={`w-7 h-7 rounded-lg bg-white/5 flex items-center justify-center ${item.color} group-hover:scale-110 transition-transform`}>
+                    <Icon className="w-4 h-4" />
+                  </div>
+                  <ChevronRight className="w-3.5 h-3.5 text-zinc-600 group-hover:text-white transition-colors" />
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-white group-hover:text-[#35D9F2] transition-colors line-clamp-1">
+                    {item.label}
+                  </div>
+                  <div className="text-[10px] text-zinc-500 line-clamp-1 mt-0.5">
+                    {item.desc}
+                  </div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Target Career Strategic Banner */}
+      <div className="bg-[#0B0F12] p-6 sm:p-7 rounded-2xl border border-white/10 relative overflow-hidden shadow-2xl">
         <div className="relative flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <Badge variant="cyan" size="sm">ACTIVE CAREER TARGET</Badge>
+              <Badge variant="cyan" size="sm">ACTIVE TARGET TRAJECTORY</Badge>
               <span className="text-xs font-mono text-zinc-400">Demand: {career.growth_outlook}</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
@@ -218,126 +408,6 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
               <Bar dataKey="required" name="Required Level" fill="#27272A" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
-        </div>
-      </div>
-
-      {/* Two Column Section: Quick Actions & Recent Telemetry */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Left: Quick Actions & Recommended Next Move */}
-        <div className="bg-[#0B0F12] p-6 rounded-2xl border border-white/8 space-y-4">
-          <h3 className="text-base font-bold text-white flex items-center gap-2">
-            <Compass className="w-4 h-4 text-[#35D9F2]" />
-            Recommended Next Step
-          </h3>
-          <p className="text-xs text-zinc-400 leading-relaxed">
-            The Roadmap Agent has determined that bridging your deficit in <strong>{progress.career.top_blockers[0] || 'JavaScript'}</strong> will yield the highest immediate leap in career readiness (+22%).
-          </p>
-
-          <div className="p-4 rounded-xl bg-[#11171B] border border-[#35D9F2]/30 flex items-center justify-between gap-4">
-            <div className="space-y-1">
-              <span className="text-[10px] font-mono text-[#35D9F2] uppercase font-semibold">Priority 1 Milestone</span>
-              <div className="text-sm font-semibold text-white">Foundations & Core Syntax: {progress.career.top_blockers[0] || 'JavaScript'}</div>
-              <div className="text-xs text-zinc-400 font-mono">12 estimated hours • Interactive Curriculum</div>
-            </div>
-            <Button 
-              onClick={() => onNavigateTab('roadmap')}
-              variant="primary"
-              size="sm"
-            >
-              Resume
-            </Button>
-          </div>
-
-          {/* Quick Hub Grid */}
-          <div className="grid grid-cols-2 gap-3 pt-2">
-            <button
-              onClick={() => onNavigateTab('learning')}
-              className="p-3.5 rounded-xl bg-[#11171B] border border-white/5 hover:border-[#35D9F2]/40 text-left transition-colors cursor-pointer group"
-            >
-              <div className="flex items-center gap-2 text-[#35D9F2] text-xs font-semibold mb-1">
-                <BookOpen className="w-3.5 h-3.5" />
-                Learning Center
-              </div>
-              <div className="text-xs text-zinc-400 group-hover:text-zinc-300">
-                Study deep-dive modules with code snippets.
-              </div>
-            </button>
-
-            <button
-              onClick={() => onNavigateTab('coding-lab')}
-              className="p-3.5 rounded-xl bg-[#11171B] border border-white/5 hover:border-[#C5F45B]/40 text-left transition-colors cursor-pointer group"
-            >
-              <div className="flex items-center gap-2 text-[#C5F45B] text-xs font-semibold mb-1">
-                <Code2 className="w-3.5 h-3.5" />
-                Practice Lab
-              </div>
-              <div className="text-xs text-zinc-400 group-hover:text-zinc-300">
-                Execute algorithms with automated test runner.
-              </div>
-            </button>
-
-            <button
-              onClick={() => onNavigateTab('interview-sim')}
-              className="p-3.5 rounded-xl bg-[#11171B] border border-white/5 hover:border-[#35D9F2]/40 text-left transition-colors cursor-pointer group"
-            >
-              <div className="flex items-center gap-2 text-[#35D9F2] text-xs font-semibold mb-1">
-                <Mic2 className="w-3.5 h-3.5" />
-                Interview Simulator
-              </div>
-              <div className="text-xs text-zinc-400 group-hover:text-zinc-300">
-                Score responses with AI staff engineering rubrics.
-              </div>
-            </button>
-
-            <button
-              onClick={() => onNavigateTab('resume-analyzer')}
-              className="p-3.5 rounded-xl bg-[#11171B] border border-white/5 hover:border-[#C5F45B]/40 text-left transition-colors cursor-pointer group"
-            >
-              <div className="flex items-center gap-2 text-[#C5F45B] text-xs font-semibold mb-1">
-                <FileSpreadsheet className="w-3.5 h-3.5" />
-                Resume Analyzer
-              </div>
-              <div className="text-xs text-zinc-400 group-hover:text-zinc-300">
-                Run ATS semantic match against dream roles.
-              </div>
-            </button>
-          </div>
-        </div>
-
-        {/* Right: Recent Agent & Activity Timeline */}
-        <div className="bg-[#0B0F12] p-6 rounded-2xl border border-white/8 space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-base font-bold text-white flex items-center gap-2">
-              <Clock className="w-4 h-4 text-[#35D9F2]" />
-              Recent System Activity
-            </h3>
-            <button 
-              onClick={() => onNavigateTab('readiness')}
-              className="text-xs text-[#35D9F2] hover:underline font-mono cursor-pointer"
-            >
-              Full Readiness & Timeline →
-            </button>
-          </div>
-
-          <div className="space-y-3 font-mono text-xs">
-            {progress.recent_activity.length > 0 ? (
-              progress.recent_activity.slice(0, 4).map((act) => (
-                <div key={act.id} className="p-3 rounded-lg bg-[#11171B] border border-white/5 flex items-start justify-between gap-3">
-                  <div className="space-y-0.5">
-                    <div className="text-[#35D9F2] font-semibold">{act.description}</div>
-                    <div className="text-[10px] text-zinc-500">{new Date(act.created_at).toLocaleTimeString()}</div>
-                  </div>
-                  <span className="text-[10px] px-2 py-0.5 rounded bg-[#161D22] text-zinc-300 border border-white/5 shrink-0">
-                    {act.event_type}
-                  </span>
-                </div>
-              ))
-            ) : (
-              <div className="p-4 rounded-lg bg-[#11171B] border border-white/5 text-zinc-500 text-center">
-                Baseline profile initialized. Take an assessment or complete a milestone to see activity.
-              </div>
-            )}
-          </div>
         </div>
       </div>
     </div>

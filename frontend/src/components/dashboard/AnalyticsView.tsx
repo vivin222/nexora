@@ -26,12 +26,14 @@ import { api } from '../../api/client';
 import { WeeklyGoals, ProgressOverview } from '../../types';
 import { Badge } from '../common/Badge';
 import { Button } from '../common/Button';
+import { WeeklyMissionsWidget } from './WeeklyMissionsWidget';
 
 interface AnalyticsViewProps {
   progress: ProgressOverview | null;
+  onNavigateTab?: (tab: any) => void;
 }
 
-export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ progress }) => {
+export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ progress, onNavigateTab }) => {
   const [goals, setGoals] = useState<WeeklyGoals | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [saving, setSaving] = useState<boolean>(false);
@@ -126,6 +128,9 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ progress }) => {
           </div>
         </div>
       </div>
+
+      {/* AI-Adaptive Weekly Missions */}
+      <WeeklyMissionsWidget onNavigateTab={onNavigateTab} />
 
       {/* Weekly Goals Progress Row */}
       {goals && (

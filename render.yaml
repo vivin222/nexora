@@ -18,7 +18,7 @@ services:
       - key: ENVIRONMENT
         value: production
       - key: FRONTEND_URL
-        value: https://nexora-web.onrender.com
+        value: https://nexora-web-9bi2.onrender.com
       - key: SECRET_KEY
         sync: false
       - key: GOOGLE_CLIENT_ID
@@ -47,7 +47,7 @@ services:
         destination: /index.html
     envVars:
       - key: VITE_API_URL
-        value: https://nexora-api.onrender.com
+        value: https://nexora-omw4.onrender.com
       - key: VITE_GOOGLE_CLIENT_ID
         sync: false
       - key: VITE_GITHUB_CLIENT_ID

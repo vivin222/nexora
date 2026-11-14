@@ -2,6 +2,7 @@ import React from 'react';
 import { ArrowRight, Sparkles, Terminal, Activity, CheckCircle2, ShieldCheck, Zap } from 'lucide-react';
 import { Button } from '../common/Button';
 import { Badge } from '../common/Badge';
+import { CursorInteractiveSystem } from '../common/CursorInteractiveSystem';
 
 interface HeroSectionProps {
   onStart: () => void;
@@ -11,6 +12,9 @@ interface HeroSectionProps {
 export const HeroSection: React.FC<HeroSectionProps> = ({ onStart, onExplore }) => {
   return (
     <section className="relative overflow-hidden pt-24 pb-28 md:pt-32 md:pb-40 bg-[#050608] vercel-grid">
+      {/* Coordinated Cursor-Responsive Visual Experience */}
+      <CursorInteractiveSystem />
+
       {/* Subtle Cyan & Lime Atmospheric Lighting Orbs */}
       <div className="ambient-cyan-orb w-[650px] h-[650px] -top-48 left-1/2 -translate-x-1/2 opacity-25" />
       <div className="ambient-lime-orb w-[450px] h-[450px] top-60 -right-24 opacity-20" />

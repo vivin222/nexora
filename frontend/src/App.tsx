@@ -422,6 +422,7 @@ export function App() {
           {currentTab === 'analytics' && (
             <AnalyticsView 
               progress={progress}
+              onNavigateTab={setCurrentTab}
             />
           )}
 

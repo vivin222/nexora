@@ -37,17 +37,26 @@ class AssessmentAgent:
             total_questions = len(questions)
             correct_count = 0
             question_breakdown = []
+            misconceptions = []
 
             for q in questions:
                 q_id = q["id"]
                 correct_idx = q["correct_option_index"]
                 user_selected = answers.get(q_id, -1)
                 is_correct = (user_selected == correct_idx)
+                options = json.loads(q["options_json"])
 
                 if is_correct:
                     correct_count += 1
+                else:
+                    selected_text = options[user_selected] if (0 <= user_selected < len(options)) else "No response provided"
+                    correct_text = options[correct_idx] if (0 <= correct_idx < len(options)) else ""
+                    misconceptions.append({
+                        "question_id": q_id,
+                        "concept": q["question_text"],
+                        "misconception": f"Selected '{selected_text}'. Correct understanding: '{correct_text}'. {q['explanation']}"
+                    })
 
-                options = json.loads(q["options_json"])
                 question_breakdown.append({
                     "question_id": q_id,
                     "question_text": q["question_text"],
@@ -68,13 +77,16 @@ class AssessmentAgent:
 
             feedback_summary = (
                 f"Scored {correct_count}/{total_questions} ({percentage}%). "
-                f"{'Passed with proficiency verification.' if passed else 'Proficiency deficit identified; recommended remediation.'}"
+                f"{'Passed with proficiency verification.' if passed else 'Proficiency deficit identified; recommended smart revision.'}"
             )
 
             result_id = str(uuid.uuid4())
             cursor.execute("""
-                INSERT INTO assessment_results (id, learner_id, assessment_id, score, total_questions, percentage, passed, answers_json, feedback)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO assessment_results (
+                    id, learner_id, assessment_id, score, total_questions, percentage, passed,
+                    answers_json, feedback, status, misconceptions_json
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'completed', ?)
             """, (
                 result_id,
                 learner_id,
@@ -84,7 +96,8 @@ class AssessmentAgent:
                 percentage,
                 passed,
                 json.dumps(answers),
-                feedback_summary
+                feedback_summary,
+                json.dumps(misconceptions)
             ))
 
             # Update or insert into learner_skills
@@ -116,5 +129,6 @@ class AssessmentAgent:
                 "passed": bool(passed),
                 "new_proficiency": new_proficiency,
                 "feedback": feedback_summary,
-                "breakdown": question_breakdown
+                "breakdown": question_breakdown,
+                "misconceptions": misconceptions
             }

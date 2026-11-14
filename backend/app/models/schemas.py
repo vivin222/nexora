@@ -169,6 +169,47 @@ class ProfileUpdateRequest(BaseModel):
 class CareerSelectRequest(BaseModel):
     career_id: str
 
+class CareerDiscoveryRequest(BaseModel):
+    education_level: Optional[str] = ""
+    department: Optional[str] = ""
+    academic_year: Optional[str] = ""
+    institution: Optional[str] = ""
+    interests: Optional[List[str]] = []
+    skills: Optional[List[SkillItem]] = []
+    projects: Optional[List[Dict[str, Any]]] = []
+    certifications: Optional[List[str]] = []
+    weekly_hours: Optional[int] = 10
+    work_preference: Optional[str] = "Hybrid"
+    dream_roles: Optional[str] = ""
+
+class CareerMatchItem(BaseModel):
+    career_id: str
+    slug: str
+    title: str
+    category: str
+    description: str
+    average_salary: str
+    growth_outlook: str
+    difficulty_level: str
+    match_score: float
+    fit_level: str
+    skill_matrix_score: float
+    interest_alignment_score: float
+    overlapping_skills: List[Dict[str, Any]]
+    critical_gaps: List[Dict[str, Any]]
+    overlapping_skills_count: int
+    critical_gaps_count: int
+    estimated_weeks: int
+    match_rationale: str
+    is_active_target: bool = False
+
+class CareerDiscoveryResponse(BaseModel):
+    status: str
+    top_matches: List[CareerMatchItem]
+    all_matches: List[CareerMatchItem]
+    missing_profile_data: List[str]
+    total_evaluated: int
+
 # --- Assessment ---
 class AssessmentSubmitRequest(BaseModel):
     assessment_id: str

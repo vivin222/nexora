@@ -14,6 +14,7 @@ import {
 import { api } from '../../api/client';
 import { Achievement, Certificate } from '../../types';
 import { Badge } from '../common/Badge';
+import { GraduationCapSymbol } from '../common/GraduationCapSymbol';
 
 export const AchievementsView: React.FC = () => {
   const [achievements, setAchievements] = useState<Achievement[]>([]);
@@ -79,6 +80,33 @@ export const AchievementsView: React.FC = () => {
               {unlockedCount} <span className="text-zinc-500 text-sm">/ {totalAvailable}</span>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Graduation Cap Milestone Banner */}
+      <div className="p-6 rounded-2xl bg-gradient-to-r from-[#11171B] via-[#0B0F12] to-[#11171B] border border-[#35D9F2]/30 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden shadow-2xl">
+        <div className="flex items-center gap-5">
+          <div className="p-3.5 rounded-2xl bg-[#161D22] border border-[#35D9F2]/40 shrink-0">
+            <GraduationCapSymbol size={44} interactive={true} />
+          </div>
+          <div className="space-y-1 text-left">
+            <div className="flex items-center gap-2">
+              <Badge variant="cyan" size="sm">ASPIRATIONAL MILESTONE</Badge>
+              <span className="text-xs font-mono text-[#C5F45B]">80%+ Career Readiness Goal</span>
+            </div>
+            <h2 className="text-lg sm:text-xl font-bold text-white tracking-tight">
+              NEXORA Graduation Cap & Placement Endorsement
+            </h2>
+            <p className="text-xs text-zinc-400 max-w-xl leading-relaxed">
+              Awarded when your mathematical skill verification, project portfolio, and assessment accuracy reach market-ready benchmarks.
+            </p>
+          </div>
+        </div>
+
+        <div className="bg-[#161D22] px-5 py-3 rounded-xl border border-white/8 text-center shrink-0 w-full md:w-auto">
+          <div className="text-[10px] font-mono uppercase text-zinc-400">Graduation Status</div>
+          <div className="text-sm font-bold font-mono text-[#35D9F2] mt-0.5">Active Candidate</div>
+          <div className="text-[10px] font-mono text-zinc-500 mt-0.5">Verified on completion</div>
         </div>
       </div>
 

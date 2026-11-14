@@ -9,7 +9,8 @@ from app.data.seed_data import seed_database
 from app.data.seed_expansion import seed_expanded_features
 from app.routers import (
     auth, admin, profile, careers, skills, assessments, roadmap, progress, mentor, agents,
-    learning, coding_lab, project_studio, interview, resume, goals, achievements, opportunities
+    learning, coding_lab, project_studio, interview, resume, goals, achievements, opportunities,
+    missions, simulator
 )
 
 # Configure structured logging
@@ -41,6 +42,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
+    allow_origin_regex=r"https://.*\.onrender\.com",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -67,6 +69,8 @@ app.include_router(resume.router, prefix="/api")
 app.include_router(goals.router, prefix="/api")
 app.include_router(achievements.router, prefix="/api")
 app.include_router(opportunities.router, prefix="/api")
+app.include_router(missions.router, prefix="/api")
+app.include_router(simulator.router, prefix="/api")
 
 @app.get("/api/health", tags=["System"])
 def health_check():
